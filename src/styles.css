@@ -154,6 +154,13 @@
   }
 }
 
+@layer components {
+  .input {
+    @apply w-full rounded-xl border-2 bg-input px-3 py-2.5 text-sm outline-none transition-colors;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground;
+  }
+}
+
 @layer utilities {
   .sticker {
     box-shadow: var(--shadow-sticker);

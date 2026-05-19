@@ -12,12 +12,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Panel admin — DrinkCard MOA" }] }),
 });
 
-const NAV = [
+const NAV: Array<{ to: "/admin" | "/admin/volunteers" | "/admin/shifts" | "/admin/analytics"; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/volunteers", label: "Voluntarios", icon: Users },
   { to: "/admin/shifts", label: "Turnos", icon: Calendar },
   { to: "/admin/analytics", label: "Analíticas", icon: LineChart },
-] as const;
+];
 
 function AdminLayout() {
   const { pathname } = useLocation();
