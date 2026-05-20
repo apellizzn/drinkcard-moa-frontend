@@ -39,7 +39,12 @@ export async function api<T = unknown>(
   const data = text ? safeJson(text) : undefined;
 
   if (!res.ok) {
-    if (res.status === 401) sessionStore.clear();
+    // Only clear the session if the auth endpoint itself rejects the token.
+    // A 401 from any other endpoint can be a transient backend issue and
+    // must NOT kick the user out — that caused logouts on page reload.
+    if (res.status === 401 && /\/auth\/(me|refresh)\b/.test(path)) {
+      sessionStore.clear();
+    }
     const msg =
       (data && typeof data === "object" && "message" in (data as any) && (data as any).message) ||
       (data && typeof data === "object" && "error" in (data as any) && (data as any).error) ||
