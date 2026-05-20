@@ -74,7 +74,7 @@ export const Route = createRootRoute({
       { property: "og:title", content: "DrinkCard MOA" },
       { property: "og:description", content: "Tu tarjeta digital del festival." },
       { property: "og:type", content: "website" },
-      { name: "theme-color", content: "#1a0d2e" },
+      { name: "theme-color", content: "#fafaf6" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
