@@ -95,9 +95,13 @@ function ScannerPage() {
       </div>
 
       {mode === "camera" ? (
-        <div className="mt-6 rounded-3xl border-2 bg-black overflow-hidden aspect-square max-w-md">
-          <div ref={elRef} className="w-full h-full" />
+        <div className="mt-6 relative rounded-3xl border-2 bg-black overflow-hidden w-full max-w-md aspect-square mx-auto qr-square">
+          <div ref={elRef} className="absolute inset-0 w-full h-full" />
           {!scanning && <div className="absolute inset-0 grid place-items-center text-white/70 text-sm">Activando cámara...</div>}
+          {/* square guide overlay */}
+          <div className="pointer-events-none absolute inset-0 grid place-items-center">
+            <div className="h-2/3 w-2/3 rounded-2xl border-4 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
+          </div>
         </div>
       ) : (
         <div className="mt-6 rounded-3xl border-2 bg-card p-6">
