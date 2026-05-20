@@ -30,11 +30,20 @@ function AppPage() {
   });
 
   const checkout = useMutation({
-    mutationFn: () =>
-      api<{ paymentId: string; checkoutUrl: string; status: string }>(
+    mutationFn: () => {
+      const volunteerId = session?.volunteerId ?? session?.userId;
+      if (!volunteerId) throw new ApiError(400, "Sesión incompleta: falta el identificador del voluntario");
+      return api<{ paymentId: string; checkoutUrl: string; status: string }>(
         "/api/v1/payments/checkout",
-        { method: "POST", body: JSON.stringify({}) },
-      ),
+        {
+          method: "POST",
+          body: JSON.stringify({
+            volunteerId,
+            idempotencyKey: crypto.randomUUID(),
+          }),
+        },
+      );
+    },
     onSuccess: (res) => {
       try {
         localStorage.setItem("drinkcard.pendingPayment", JSON.stringify({ paymentId: res.paymentId, at: Date.now() }));

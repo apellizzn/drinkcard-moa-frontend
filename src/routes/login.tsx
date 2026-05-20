@@ -3,13 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api, ApiError } from "@/lib/api";
-import { sessionStore, type Session } from "@/lib/session";
+import { normalizeSession, sessionStore, type Session } from "@/lib/session";
 import { Sticker } from "@/components/Sticker";
 import { toast } from "sonner";
 
 const schema = z.object({
   email: z.string().email("Email no válido"),
-  password: z.string().min(1, "Introduce tu contraseña"),
+  password: z.string().min(8, "Mínimo 8 caracteres").max(20, "Máximo 20 caracteres"),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -31,10 +31,10 @@ function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       const res = await api<{
-        token: string; userId: string; email: string; role: Session["role"];
+        token: string; volunteerId: string; email: string; role: Session["role"];
         firstName?: string; lastName?: string;
       }>("/api/v1/auth/login", { method: "POST", auth: false, body: JSON.stringify(data) });
-      sessionStore.set(res);
+      sessionStore.set(normalizeSession(res));
       toast.success("¡Bienvenido de vuelta!");
       navigate({ to: (redirect as any) || "/app" });
     } catch (e) {

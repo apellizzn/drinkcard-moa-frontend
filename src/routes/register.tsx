@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api, ApiError } from "@/lib/api";
-import { sessionStore, type Session } from "@/lib/session";
+import { normalizeSession, sessionStore, type Session } from "@/lib/session";
 import { AuthShell, Field } from "./login";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ const schema = z.object({
   firstName: z.string().min(1, "Tu nombre"),
   lastName: z.string().min(1, "Tu apellido"),
   email: z.string().email("Email no válido"),
-  password: z.string().min(8, "Mínimo 8 caracteres"),
+  password: z.string().min(8, "Mínimo 8 caracteres").max(20, "Máximo 20 caracteres"),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -30,13 +30,13 @@ function RegisterPage() {
     try {
       await api("/api/v1/auth/register", { method: "POST", auth: false, body: JSON.stringify(data) });
       const res = await api<{
-        token: string; userId: string; email: string; role: Session["role"];
+        token: string; volunteerId: string; email: string; role: Session["role"];
         firstName?: string; lastName?: string;
       }>("/api/v1/auth/login", {
         method: "POST", auth: false,
         body: JSON.stringify({ email: data.email, password: data.password }),
       });
-      sessionStore.set({ ...res, firstName: res.firstName ?? data.firstName, lastName: res.lastName ?? data.lastName });
+      sessionStore.set(normalizeSession({ ...res, firstName: res.firstName ?? data.firstName, lastName: res.lastName ?? data.lastName }));
       toast.success("¡Cuenta creada! Bienvenido al festival.");
       navigate({ to: "/app" });
     } catch (e) {
@@ -60,7 +60,7 @@ function RegisterPage() {
         </Field>
         <Field label="Contraseña" error={errors.password?.message}>
           <input type="password" {...register("password")} className="input" autoComplete="new-password" />
-          <span className="mt-1 block text-xs text-muted-foreground">Mínimo 8 caracteres.</span>
+          <span className="mt-1 block text-xs text-muted-foreground">Entre 8 y 20 caracteres.</span>
         </Field>
         <button
           type="submit" disabled={isSubmitting}

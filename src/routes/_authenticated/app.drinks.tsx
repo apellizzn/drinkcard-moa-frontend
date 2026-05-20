@@ -4,6 +4,7 @@ import { api, ApiError } from "@/lib/api";
 import { Sticker } from "@/components/Sticker";
 import { ArrowLeft, Beer, Wine, Droplet, GlassWater } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "@/hooks/use-session";
 
 const DRINKS = [
   { id: "BEER", label: "Cerveza", icon: Beer, color: "yellow" as const },
@@ -26,12 +27,16 @@ export const Route = createFileRoute("/_authenticated/app/drinks")({
 
 function DrinksPage() {
   const navigate = useNavigate();
+  const session = useSession();
   const create = useMutation({
-    mutationFn: (drinkType: string) =>
-      api<TicketResponse>("/api/v1/drink-tickets", {
+    mutationFn: (drinkType: string) => {
+      const volunteerId = session?.volunteerId ?? session?.userId;
+      if (!volunteerId) throw new ApiError(400, "Sesión incompleta: falta el identificador del voluntario");
+      return api<TicketResponse>("/api/v1/drink-tickets", {
         method: "POST",
-        body: JSON.stringify({ drinkType }),
-      }),
+        body: JSON.stringify({ volunteerId, drinkType }),
+      });
+    },
     onSuccess: (t) => {
       try {
         localStorage.setItem("drinkcard.currentTicket", JSON.stringify(t));

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Sticker } from "@/components/Sticker";
 import { Camera, CheckCircle2, XCircle, Type } from "lucide-react";
+import { useSession } from "@/hooks/use-session";
 
 interface ConsumeResponse {
   ticketId: string; status: string; drinkType: string; remainingCredits: number;
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/bar/scanner")({
 });
 
 function ScannerPage() {
+  const session = useSession();
   const [mode, setMode] = useState<"camera" | "manual">("camera");
   const [manualValue, setManualValue] = useState("");
   const [last, setLast] = useState<{ ok: boolean; data?: ConsumeResponse; msg?: string } | null>(null);
@@ -27,7 +29,12 @@ function ScannerPage() {
     if (lockRef.current === ticketId) return;
     lockRef.current = ticketId;
     try {
-      const res = await api<ConsumeResponse>(`/api/v1/drink-tickets/${ticketId}/consume`, { method: "POST" });
+      const consumedByStaffId = session?.volunteerId ?? session?.userId;
+      if (!consumedByStaffId) throw new ApiError(400, "Sesión incompleta: falta el identificador del usuario");
+      const res = await api<ConsumeResponse>(`/api/v1/drink-tickets/${ticketId}/consume`, {
+        method: "POST",
+        body: JSON.stringify({ consumedByStaffId }),
+      });
       setLast({ ok: true, data: res });
     } catch (e) {
       setLast({ ok: false, msg: e instanceof ApiError ? e.message : "Ticket no válido" });

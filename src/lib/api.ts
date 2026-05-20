@@ -1,8 +1,13 @@
 import { sessionStore } from "./session";
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
+
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ||
-  "http://localhost:8080";
+  configuredApiBaseUrl === undefined
+    ? import.meta.env.DEV
+      ? ""
+      : "http://localhost:8080"
+    : configuredApiBaseUrl.replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public body?: unknown) {
@@ -37,6 +42,8 @@ export async function api<T = unknown>(
     if (res.status === 401) sessionStore.clear();
     const msg =
       (data && typeof data === "object" && "message" in (data as any) && (data as any).message) ||
+      (data && typeof data === "object" && "error" in (data as any) && (data as any).error) ||
+      (typeof data === "string" && data.trim()) ||
       res.statusText ||
       "Error en la petición";
     throw new ApiError(res.status, String(msg), data);
