@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { Sticker } from "@/components/Sticker";
 import { useSession } from "@/hooks/use-session";
-import { CreditCard, Beer, Loader2, ExternalLink } from "lucide-react";
+import { CreditCard, Beer, Loader2, ExternalLink, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
