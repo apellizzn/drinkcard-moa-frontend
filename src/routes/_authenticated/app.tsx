@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
 import { Sticker } from "@/components/Sticker";
 import { useSession } from "@/hooks/use-session";
-import { CreditCard, Beer, Loader2, ExternalLink } from "lucide-react";
+import { CreditCard, Beer, Loader2, ExternalLink, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -125,6 +125,18 @@ function AppPage() {
           <p className="text-sm opacity-80 mt-1">
             {credits > 0 ? "Genera tu QR de un solo uso" : "Sin créditos, compra primero"}
           </p>
+        </Link>
+
+        <Link
+          to="/bar/scanner"
+          className="sm:col-span-2 group relative rounded-3xl border-2 bg-accent text-accent-foreground p-6 sticker-lg hover:translate-y-[-1px] transition-transform flex items-center gap-4"
+        >
+          <Sticker color="yellow" rotate={-8} className="absolute -top-3 -left-3">Barra</Sticker>
+          <ScanLine className="h-10 w-10" />
+          <div>
+            <h2 className="font-display text-2xl">Abrir escáner de barra</h2>
+            <p className="text-sm opacity-90">Escanea el QR del voluntario para servir</p>
+          </div>
         </Link>
       </div>
     </main>

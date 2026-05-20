@@ -5,15 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ===== Festival DrinkCard MOA design system =====
- * Bold sticker-pop aesthetic on a night-stage background.
- * Neon magenta / yellow / cyan / orange accents.
+ * Bright sticker-pop aesthetic on a paper background.
+ * Palette: red / blue / green / pink / yellow / orange.
  */
-
-@font-face {
-  font-family: "BebasLocal";
-  src: local("Bebas Neue");
-  font-display: swap;
-}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -63,71 +57,71 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-display: "Bebas Neue", "BebasLocal", "Impact", system-ui, sans-serif;
+  --font-display: "Archivo Black", "Impact", "Anton", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 
-  --shadow-sticker: 4px 4px 0 0 oklch(0.18 0.04 280 / 0.9);
-  --shadow-sticker-lg: 6px 6px 0 0 oklch(0.12 0.04 280 / 0.95);
-  --shadow-glow-pink: 0 0 32px oklch(0.7 0.3 350 / 0.55);
-  --shadow-glow-cyan: 0 0 32px oklch(0.78 0.18 200 / 0.55);
+  --shadow-sticker: 4px 4px 0 0 #0a0a0a;
+  --shadow-sticker-lg: 6px 6px 0 0 #0a0a0a;
+  --shadow-glow-pink: 0 0 24px rgba(234, 85, 153, 0.45);
+  --shadow-glow-cyan: 0 0 24px rgba(26, 157, 217, 0.45);
 }
 
 :root {
   --radius: 1rem;
 
-  /* Night-stage palette */
-  --background: oklch(0.16 0.05 285);
-  --foreground: oklch(0.98 0.01 90);
+  /* Paper-festival palette (from brand swatches) */
+  --background: #fafaf6;
+  --foreground: #0a0a0a;
 
-  --card: oklch(0.22 0.06 285);
-  --card-foreground: oklch(0.98 0.01 90);
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
 
-  --popover: oklch(0.20 0.06 285);
-  --popover-foreground: oklch(0.98 0.01 90);
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
 
-  --primary: oklch(0.68 0.27 350);            /* neon magenta */
-  --primary-foreground: oklch(0.16 0.05 285);
+  --primary: #e30613;            /* red */
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.88 0.18 92);           /* neon yellow */
-  --secondary-foreground: oklch(0.16 0.05 285);
+  --secondary: #ffd203;          /* yellow */
+  --secondary-foreground: #0a0a0a;
 
-  --muted: oklch(0.28 0.05 285);
-  --muted-foreground: oklch(0.78 0.04 285);
+  --muted: #f1efe9;
+  --muted-foreground: #555555;
 
-  --accent: oklch(0.78 0.18 200);             /* neon cyan */
-  --accent-foreground: oklch(0.16 0.05 285);
+  --accent: #1a9dd9;             /* blue */
+  --accent-foreground: #ffffff;
 
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(0.98 0.01 90);
+  --destructive: #e30613;
+  --destructive-foreground: #ffffff;
 
-  --border: oklch(0.34 0.06 285);
-  --input: oklch(0.28 0.05 285);
-  --ring: oklch(0.68 0.27 350);
+  --border: #0a0a0a;
+  --input: #ffffff;
+  --ring: #1a9dd9;
 
-  --neon-pink: oklch(0.7 0.28 350);
-  --neon-yellow: oklch(0.9 0.18 92);
-  --neon-cyan: oklch(0.8 0.16 200);
-  --neon-orange: oklch(0.76 0.21 50);
-  --neon-lime: oklch(0.88 0.22 135);
-  --neon-violet: oklch(0.65 0.22 295);
+  --neon-pink: #ea5599;
+  --neon-yellow: #ffd203;
+  --neon-cyan: #1a9dd9;
+  --neon-orange: #f18818;
+  --neon-lime: #87bf58;
+  --neon-violet: #ec87b6;
 
-  --success: oklch(0.72 0.2 150);
-  --success-foreground: oklch(0.14 0.05 150);
-  --warning: oklch(0.82 0.18 75);
+  --success: #079d3d;
+  --success-foreground: #ffffff;
+  --warning: #f18818;
 
-  --sidebar: oklch(0.20 0.06 285);
-  --sidebar-foreground: oklch(0.98 0.01 90);
-  --sidebar-primary: oklch(0.68 0.27 350);
-  --sidebar-primary-foreground: oklch(0.16 0.05 285);
-  --sidebar-accent: oklch(0.28 0.06 285);
-  --sidebar-accent-foreground: oklch(0.98 0.01 90);
-  --sidebar-border: oklch(0.34 0.06 285);
-  --sidebar-ring: oklch(0.68 0.27 350);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #e30613;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1efe9;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #0a0a0a;
+  --sidebar-ring: #1a9dd9;
 }
 
 .dark {
-  --background: oklch(0.16 0.05 285);
-  --foreground: oklch(0.98 0.01 90);
+  --background: #0a0a0a;
+  --foreground: #fafaf6;
 }
 
 @layer base {
@@ -137,21 +131,9 @@
 
   body {
     font-family: var(--font-sans);
-    background-image:
-      radial-gradient(ellipse 80% 60% at 20% 0%, oklch(0.7 0.28 350 / 0.15), transparent 60%),
-      radial-gradient(ellipse 70% 60% at 90% 10%, oklch(0.8 0.16 200 / 0.12), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 50% 100%, oklch(0.9 0.18 92 / 0.08), transparent 60%);
-    background-attachment: fixed;
   }
 
-  h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: 0.01em; }
-
-  /* subtle grain */
-  body::before {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    mix-blend-mode: overlay; opacity: 0.5;
-  }
+  h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; line-height: 0.95; }
 }
 
 @layer components {
@@ -164,15 +146,23 @@
 @layer utilities {
   .sticker {
     box-shadow: var(--shadow-sticker);
-    border: 2px solid oklch(0.12 0.04 285);
+    border: 2px solid #0a0a0a;
   }
-  .sticker-lg { box-shadow: var(--shadow-sticker-lg); border: 3px solid oklch(0.12 0.04 285); }
+  .sticker-lg { box-shadow: var(--shadow-sticker-lg); border: 3px solid #0a0a0a; }
   .glow-pink { box-shadow: var(--shadow-glow-pink); }
   .glow-cyan { box-shadow: var(--shadow-glow-cyan); }
 
-  @keyframes float-slow { 0%,100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-10px) rotate(var(--r, 0deg)); } }
+  @keyframes float-slow { 0%,100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-8px) rotate(var(--r, 0deg)); } }
   .animate-float { animation: float-slow 6s ease-in-out infinite; }
 
   @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .animate-ticker { animation: ticker 30s linear infinite; }
+
+  /* force html5-qrcode video to fill a square */
+  .qr-square video, .qr-square canvas, .qr-square img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block;
+  }
 }

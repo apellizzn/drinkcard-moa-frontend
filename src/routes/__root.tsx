@@ -74,7 +74,7 @@ export const Route = createRootRoute({
       { property: "og:title", content: "DrinkCard MOA" },
       { property: "og:description", content: "Tu tarjeta digital del festival." },
       { property: "og:type", content: "website" },
-      { name: "theme-color", content: "#1a0d2e" },
+      { name: "theme-color", content: "#fafaf6" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -82,7 +82,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),
