@@ -22,7 +22,7 @@ const NAV: Array<{ to: "/admin" | "/admin/volunteers" | "/admin/shifts" | "/admi
 function AdminLayout() {
   const { pathname } = useLocation();
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 grid gap-6 md:grid-cols-[220px_1fr]">
+    <div className="admin-clean mx-auto max-w-7xl px-4 py-6 grid gap-6 md:grid-cols-[220px_1fr]">
       <aside className="md:sticky md:top-20 md:self-start">
         <div className="rounded-3xl border-2 bg-sidebar p-3 sticker">
           <nav className="flex md:flex-col gap-1 overflow-x-auto">

@@ -149,6 +149,19 @@
     border: 2px solid #0a0a0a;
   }
   .sticker-lg { box-shadow: var(--shadow-sticker-lg); border: 3px solid #0a0a0a; }
+
+  /* Admin surfaces stay flat — no 3D pop, calmer borders, better hierarchy. */
+  .admin-clean .sticker,
+  .admin-clean .sticker-lg {
+    box-shadow: none;
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-style: solid;
+  }
+  .admin-clean .sticker {
+    /* Override the hard-black border on tiny pill stickers too */
+    border-color: rgba(10, 10, 10, 0.12);
+  }
   .glow-pink { box-shadow: var(--shadow-glow-pink); }
   .glow-cyan { box-shadow: var(--shadow-glow-cyan); }
 

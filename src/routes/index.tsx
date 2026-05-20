@@ -97,20 +97,6 @@ function Index() {
           </div>
         </section>
 
-        {/* Ticker */}
-        <div className="border-y-2 bg-primary/95 text-primary-foreground overflow-hidden">
-          <div className="flex whitespace-nowrap py-3 animate-ticker font-display text-2xl tracking-widest">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="flex shrink-0 items-center gap-8 pr-8">
-                <span>★ DRINKCARD MOA</span><span>•</span>
-                <span>5 BEBIDAS POR 10€</span><span>•</span>
-                <span>QR DE UN SOLO USO</span><span>•</span>
-                <span>SIN COLAS EN CAJA</span><span>•</span>
-                <span>FESTIVAL 2026</span><span>•</span>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Steps */}
         <section className="mx-auto max-w-6xl px-4 py-20">

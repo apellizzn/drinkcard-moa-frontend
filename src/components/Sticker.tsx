@@ -3,12 +3,13 @@ import type { CSSProperties, ReactNode } from "react";
 
 type Color = "pink" | "yellow" | "cyan" | "orange" | "lime" | "violet";
 
+// All stickers use black text for maximum contrast on the bright palette.
 const colorMap: Record<Color, string> = {
-  pink: "bg-neon-pink text-neon-pink-foreground",
-  yellow: "bg-neon-yellow text-background",
+  pink: "bg-neon-pink text-foreground",
+  yellow: "bg-neon-yellow text-foreground",
   cyan: "bg-neon-cyan text-background",
-  orange: "bg-neon-orange text-background",
-  lime: "bg-neon-lime text-background",
+  orange: "bg-neon-orange text-foreground",
+  lime: "bg-neon-lime text-foreground",
   violet: "bg-neon-violet text-foreground",
 };
 
@@ -33,7 +34,7 @@ export function Sticker({
     lg: "px-5 py-2 text-base",
   };
   const bgClass = colorMap[color].split(" ")[0];
-  const textClass = color === "pink" ? "text-background" : colorMap[color].split(" ")[1];
+  const textClass = colorMap[color].split(" ")[1];
   return (
     <span
       className={cn(
