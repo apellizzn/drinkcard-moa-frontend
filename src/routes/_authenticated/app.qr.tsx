@@ -57,7 +57,7 @@ function QrPage() {
   const isConsumed = current?.status === "CONSUMED";
   const isExpired = current?.status === "EXPIRED" || remaining <= 0;
 
-  const qrValue = JSON.stringify({ ticketId: ticket.ticketId });
+  const qrValue = ticket.qrPayload || ticket.qrCode || ticket.token || JSON.stringify({ ticketId: ticket.ticketId });
 
   return (
     <main className="mx-auto max-w-md px-4 py-8">
