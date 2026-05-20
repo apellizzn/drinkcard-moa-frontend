@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sticker } from "@/components/Sticker";
 import { ArrowLeft, CheckCircle2, XCircle, Clock } from "lucide-react";
 
-interface Ticket { ticketId: string; status: string; drinkType: string; expiresAt?: string }
+interface Ticket { ticketId: string; status: string; drinkType: string; expiresAt?: string; qrPayload?: string; qrCode?: string; token?: string }
 const LABELS: Record<string, string> = { BEER: "Cerveza", WINE: "Vino", WATER: "Agua", SOFT_DRINK: "Refresco" };
 
 export const Route = createFileRoute("/_authenticated/app/qr")({
