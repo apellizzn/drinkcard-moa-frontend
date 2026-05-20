@@ -55,7 +55,7 @@ function ScannerPage() {
       try {
         await scanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 240, height: 240 } },
+          { fps: 10, qrbox: (w: number, h: number) => { const s = Math.floor(Math.min(w, h) * 0.7); return { width: s, height: s }; }, aspectRatio: 1 },
           (decoded) => {
             try {
               const parsed = JSON.parse(decoded);
