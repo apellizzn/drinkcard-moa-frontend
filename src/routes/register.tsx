@@ -2,8 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { api, ApiError } from "@/lib/api";
-import { normalizeSession, sessionStore, type Session } from "@/lib/session";
+import { ApiError } from "@/lib/api";
+import { loginUser, registerUser } from "@/services/api/auth-service";
+import { saveLoginSession } from "@/services/session/session-service";
 import { AuthShell, Field } from "./login";
 import { toast } from "sonner";
 
@@ -28,15 +29,9 @@ function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await api("/api/v1/auth/register", { method: "POST", auth: false, body: JSON.stringify(data) });
-      const res = await api<{
-        token: string; volunteerId: string; email: string; role: Session["role"];
-        firstName?: string; lastName?: string;
-      }>("/api/v1/auth/login", {
-        method: "POST", auth: false,
-        body: JSON.stringify({ email: data.email, password: data.password }),
-      });
-      sessionStore.set(normalizeSession({ ...res, firstName: res.firstName ?? data.firstName, lastName: res.lastName ?? data.lastName }));
+      await registerUser(data);
+      const res = await loginUser({ email: data.email, password: data.password });
+      saveLoginSession(res, { firstName: data.firstName, lastName: data.lastName });
       toast.success("¡Cuenta creada! Bienvenido al festival.");
       navigate({ to: "/app" });
     } catch (e) {

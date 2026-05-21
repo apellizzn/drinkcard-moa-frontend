@@ -45,3 +45,15 @@ export function normalizeSession(value: unknown): Session {
     lastName: s.lastName,
   };
 }
+
+export function canUseBarScanner(role?: Role) {
+  return Boolean(role);
+}
+
+export function isAdmin(role?: Role) {
+  return role === "ADMIN";
+}
+
+export function defaultAuthenticatedPath(role?: Role) {
+  return isAdmin(role) ? "/admin" : "/app";
+}

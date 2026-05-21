@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { sessionStore } from "@/lib/session";
+import { canUseBarScanner, isAdmin, sessionStore } from "@/lib/session";
 import { useSession } from "@/hooks/use-session";
 import { toast } from "sonner";
 
@@ -42,16 +42,20 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/app" className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" /> Mi tarjeta
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/bar/scanner" className="cursor-pointer">
-            <ScanLine className="mr-2 h-4 w-4" /> Escáner barra
-          </Link>
-        </DropdownMenuItem>
+        {!isAdmin(session.role) && (
+          <DropdownMenuItem asChild>
+            <Link to="/app" className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" /> Mi tarjeta
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {canUseBarScanner(session.role) && (
+          <DropdownMenuItem asChild>
+            <Link to="/bar/scanner" className="cursor-pointer">
+              <ScanLine className="mr-2 h-4 w-4" /> Escáner barra
+            </Link>
+          </DropdownMenuItem>
+        )}
         {session.role === "ADMIN" && (
           <DropdownMenuItem asChild>
             <Link to="/admin" className="cursor-pointer">

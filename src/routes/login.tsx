@@ -2,9 +2,12 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { api, ApiError } from "@/lib/api";
-import { normalizeSession, sessionStore, type Session } from "@/lib/session";
+import { ApiError } from "@/lib/api";
+import { loginUser } from "@/services/api/auth-service";
+import { saveLoginSession } from "@/services/session/session-service";
+import { defaultAuthenticatedPath, isAdmin } from "@/lib/session";
 import { Sticker } from "@/components/Sticker";
+import { BrandLogo } from "@/components/BrandLogo";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -30,13 +33,10 @@ function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await api<{
-        token: string; volunteerId: string; email: string; role: Session["role"];
-        firstName?: string; lastName?: string;
-      }>("/api/v1/auth/login", { method: "POST", auth: false, body: JSON.stringify(data) });
-      sessionStore.set(normalizeSession(res));
+      const res = await loginUser(data);
+      saveLoginSession(res);
       toast.success("¡Bienvenido de vuelta!");
-      navigate({ to: (redirect as any) || "/app" });
+      navigate({ to: (isAdmin(res.role) ? "/admin" : redirect || defaultAuthenticatedPath(res.role)) as any });
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : "Error al iniciar sesión";
       toast.error(msg);
@@ -80,10 +80,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
   return (
     <div className="min-h-screen grid place-items-center px-4 py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center gap-2">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-display text-2xl text-primary-foreground sticker">D</span>
-          <span className="font-display text-2xl">DrinkCard <span className="text-primary">MOA</span></span>
-        </Link>
+        <BrandLogo className="mb-6" />
         <div className="relative rounded-3xl bg-card border-2 p-8 sticker-lg">
           <Sticker color="yellow" rotate={-8} className="absolute -top-4 -right-3">{subtitle}</Sticker>
           <h1 className="font-display text-4xl">{title}</h1>

@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { createDrinkTicket } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
 import { ArrowLeft, Beer, Wine, Droplet, GlassWater } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
+import { storeCurrentTicket } from "@/services/tickets/ticket-storage";
 
 const DRINKS = [
   { id: "BEER", label: "Cerveza", icon: Beer, color: "yellow" as const },
@@ -12,13 +14,6 @@ const DRINKS = [
   { id: "WATER", label: "Agua", icon: Droplet, color: "cyan" as const },
   { id: "SOFT_DRINK", label: "Refresco", icon: GlassWater, color: "orange" as const },
 ];
-
-interface TicketResponse {
-  ticketId: string;
-  status: string;
-  drinkType: string;
-  expiresAt?: string;
-}
 
 export const Route = createFileRoute("/_authenticated/app/drinks")({
   component: DrinksPage,
@@ -32,14 +27,11 @@ function DrinksPage() {
     mutationFn: (drinkType: string) => {
       const volunteerId = session?.volunteerId ?? session?.userId;
       if (!volunteerId) throw new ApiError(400, "Sesión incompleta: falta el identificador del voluntario");
-      return api<TicketResponse>("/api/v1/drink-tickets", {
-        method: "POST",
-        body: JSON.stringify({ volunteerId, drinkType }),
-      });
+      return createDrinkTicket(volunteerId, drinkType);
     },
     onSuccess: (t) => {
       try {
-        localStorage.setItem("drinkcard.currentTicket", JSON.stringify(t));
+        storeCurrentTicket(t);
       } catch {}
       navigate({ to: "/app/qr" });
     },

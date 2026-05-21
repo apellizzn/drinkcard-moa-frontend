@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { confirmPayment } from "@/services/api/payment-service";
+import { clearPendingPayment, getPendingPayment } from "@/services/payments/pending-payment-storage";
 import { Sticker } from "@/components/Sticker";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
@@ -16,14 +18,11 @@ function PaymentSuccess() {
 
   useEffect(() => {
     (async () => {
-      let pending: { paymentId: string } | null = null;
-      try { const raw = localStorage.getItem("drinkcard.pendingPayment"); if (raw) pending = JSON.parse(raw); } catch {}
+      const pending = getPendingPayment();
       if (!pending?.paymentId) return setState({ kind: "none" });
       try {
-        const res = await api<{ status: string; credits?: number }>(
-          `/api/v1/payments/${pending.paymentId}/confirm`, { method: "POST" }
-        );
-        localStorage.removeItem("drinkcard.pendingPayment");
+        const res = await confirmPayment(pending.paymentId);
+        clearPendingPayment();
         if (res.status === "SUCCESS") setState({ kind: "ok", credits: res.credits });
         else setState({ kind: "pending", status: res.status });
       } catch (e) {

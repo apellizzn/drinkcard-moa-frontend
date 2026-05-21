@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sticker } from "@/components/Sticker";
 import { useSession } from "@/hooks/use-session";
 import { UserMenu } from "@/components/UserMenu";
+import { canUseBarScanner, defaultAuthenticatedPath, isAdmin } from "@/lib/session";
+import { BrandLogo } from "@/components/BrandLogo";
 import { ArrowRight, CreditCard, QrCode, Beer, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -26,32 +28,17 @@ function Index() {
       {/* Top nav */}
       <header className="relative z-20">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-display text-2xl text-primary-foreground sticker">
-              D
-            </span>
-            <span className="font-display text-2xl tracking-wide">
-              DrinkCard <span className="text-primary">MOA</span>
-            </span>
-          </Link>
+          <BrandLogo />
           <nav className="flex items-center gap-3">
             {session ? (
               <UserMenu />
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="hidden sm:inline-flex items-center rounded-xl px-4 py-2 font-display tracking-wide hover:bg-muted transition-colors"
-                >
-                  Iniciar sesión
-                </Link>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center rounded-xl bg-secondary px-4 py-2 font-display tracking-wide text-secondary-foreground sticker"
-                >
-                  Crear cuenta
-                </Link>
-              </>
+              <Link
+                to="/login"
+                className="hidden sm:inline-flex items-center rounded-xl px-4 py-2 font-display tracking-wide hover:bg-muted transition-colors"
+              >
+                Iniciar sesión
+              </Link>
             )}
           </nav>
         </div>
@@ -82,16 +69,16 @@ function Index() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
-                to={session ? "/app" : "/register"}
+                to={session ? (defaultAuthenticatedPath(session.role) as any) : "/register"}
                 className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-display text-lg tracking-wide text-primary-foreground sticker-lg glow-pink hover:translate-y-[-1px] transition-transform"
               >
-                {session ? "Ir a mi tarjeta" : "Conseguir mi tarjeta"} <ArrowRight className="h-5 w-5" />
+                {session ? (isAdmin(session.role) ? "Ir al panel admin" : "Ir a mi tarjeta") : "Conseguir mi tarjeta"} <ArrowRight className="h-5 w-5" />
               </Link>
               <Link
-                to={session ? "/bar/scanner" : "/login"}
+                to={session ? (canUseBarScanner(session.role) ? "/bar/scanner" : "/app/drinks") : "/login"}
                 className="inline-flex items-center gap-2 rounded-2xl bg-card px-6 py-3 font-display text-lg tracking-wide border-2 hover:bg-muted transition-colors"
               >
-                {session ? "Escáner de barra" : "Ya tengo cuenta"}
+                {session ? (canUseBarScanner(session.role) ? "Escáner de barra" : "Pedir bebida") : "Ya tengo cuenta"}
               </Link>
             </div>
           </div>

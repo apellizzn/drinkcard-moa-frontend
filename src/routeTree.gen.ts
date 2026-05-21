@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedPaymentSuccessRouteImport } from './routes/_authenticated/payment.success'
 import { Route as AuthenticatedBarScannerRouteImport } from './routes/_authenticated/bar.scanner'
@@ -52,6 +53,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
@@ -112,12 +118,12 @@ export interface FileRoutesByFullPath {
   '/bar/scanner': typeof AuthenticatedBarScannerRoute
   '/payment/success': typeof AuthenticatedPaymentSuccessRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/app': typeof AuthenticatedAppRouteWithChildren
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/shifts': typeof AuthenticatedAdminShiftsRoute
   '/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
@@ -126,6 +132,7 @@ export interface FileRoutesByTo {
   '/bar/scanner': typeof AuthenticatedBarScannerRoute
   '/payment/success': typeof AuthenticatedPaymentSuccessRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/app': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/bar/scanner': typeof AuthenticatedBarScannerRoute
   '/_authenticated/payment/success': typeof AuthenticatedPaymentSuccessRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,12 +168,12 @@ export interface FileRouteTypes {
     | '/bar/scanner'
     | '/payment/success'
     | '/admin/'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/register'
-    | '/app'
     | '/admin/analytics'
     | '/admin/shifts'
     | '/admin/volunteers'
@@ -174,6 +182,7 @@ export interface FileRouteTypes {
     | '/bar/scanner'
     | '/payment/success'
     | '/admin'
+    | '/app'
   id:
     | '__root__'
     | '/'
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bar/scanner'
     | '/_authenticated/payment/success'
     | '/_authenticated/admin/'
+    | '/_authenticated/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -242,6 +252,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -322,11 +339,13 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppDrinksRoute: typeof AuthenticatedAppDrinksRoute
   AuthenticatedAppQrRoute: typeof AuthenticatedAppQrRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppDrinksRoute: AuthenticatedAppDrinksRoute,
   AuthenticatedAppQrRoute: AuthenticatedAppQrRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -359,3 +378,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

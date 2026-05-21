@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Sticker } from "@/components/Sticker";
 import { ArrowLeft, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { getDrinkTicketStatus, type Ticket } from "@/services/api/ticket-service";
+import { clearStoredTicket, getStoredTicket } from "@/services/tickets/ticket-storage";
+import { createTicketQrPayload } from "@/services/qr/ticket-qr";
 
-interface Ticket { ticketId: string; status: string; drinkType: string; expiresAt?: string; qrPayload?: string; qrCode?: string; token?: string }
 const LABELS: Record<string, string> = { BEER: "Cerveza", WINE: "Vino", WATER: "Agua", SOFT_DRINK: "Refresco" };
 
 export const Route = createFileRoute("/_authenticated/app/qr")({
@@ -19,15 +20,12 @@ function QrPage() {
   const [ticket, setTicket] = useState<Ticket | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("drinkcard.currentTicket");
-      if (raw) setTicket(JSON.parse(raw));
-    } catch {}
+    setTicket(getStoredTicket());
   }, []);
 
   const status = useQuery({
     queryKey: ["ticket", ticket?.ticketId, "status"],
-    queryFn: () => api<Ticket>(`/api/v1/drink-tickets/${ticket!.ticketId}/status`),
+    queryFn: () => getDrinkTicketStatus(ticket!.ticketId),
     enabled: !!ticket?.ticketId,
     refetchInterval: 3000,
   });
@@ -57,7 +55,7 @@ function QrPage() {
   const isConsumed = current?.status === "CONSUMED";
   const isExpired = current?.status === "EXPIRED" || remaining <= 0;
 
-  const qrValue = ticket.qrPayload || ticket.qrCode || ticket.token || JSON.stringify({ ticketId: ticket.ticketId });
+  const qrValue = createTicketQrPayload(ticket.ticketId);
 
   return (
     <main className="mx-auto max-w-md px-4 py-8">
@@ -73,7 +71,7 @@ function QrPage() {
       <div className={`relative mt-6 rounded-3xl border-2 bg-white p-6 sticker-lg transition-opacity ${isActive ? "" : "opacity-40 grayscale"}`}>
         <Sticker color="pink" rotate={-8} className="absolute -top-3 -left-3">1 crédito</Sticker>
         <div className="grid place-items-center">
-          <QRCodeSVG value={qrValue} size={256} bgColor="#ffffff" fgColor="#0a0613" level="M" includeMargin />
+          <QRCodeSVG value={qrValue} size={256} bgColor="#ffffff" fgColor="#0a0613" level="Q" includeMargin />
         </div>
       </div>
 
@@ -111,7 +109,10 @@ function QrPage() {
 
       {(isExpired || isConsumed) && (
         <button
-          onClick={() => navigate({ to: "/app/drinks" })}
+          onClick={() => {
+            clearStoredTicket();
+            navigate({ to: "/app/drinks" });
+          }}
           className="mt-6 w-full rounded-2xl bg-primary py-3 font-display text-lg text-primary-foreground sticker-lg"
         >
           Pedir otra bebida

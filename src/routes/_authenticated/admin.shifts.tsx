@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Sticker } from "@/components/Sticker";
-import { Plus, Clock } from "lucide-react";
+import { Plus } from "lucide-react";
+import { AdminDataTable, AdminStatusBadge, AdminTable } from "@/components/admin/AdminDataTable";
 
 export const Route = createFileRoute("/_authenticated/admin/shifts")({
   component: ShiftsPage,
@@ -18,29 +18,32 @@ function ShiftsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Sticker color="orange" rotate={-3}>Turnos</Sticker>
-          <h1 className="mt-2 font-display text-5xl">Planificación de barras</h1>
-          <p className="text-xs text-muted-foreground mt-1">Demo · gestión real aún no conectada al backend</p>
+          <p className="text-sm font-medium text-slate-500">Turnos</p>
+          <h1 className="mt-1 text-3xl font-semibold text-slate-950">Planificación de barras</h1>
+          <p className="mt-1 text-sm text-slate-500">Demo · gestión real aún no conectada al backend</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 font-display text-primary-foreground sticker">
+        <button className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
           <Plus className="h-4 w-4" /> Nuevo turno
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {SHIFTS.map((s, i) => (
-          <div key={i} className="rounded-3xl border-2 bg-card p-5 sticker">
-            <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-4 w-4" /> {s.time}</div>
-            <h3 className="mt-2 font-display text-2xl">{s.bar}</h3>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-sm">{s.people} voluntarios</span>
-              <span className={`text-xs rounded-full border px-2 py-0.5 ${s.status === "Confirmado" ? "border-success text-success bg-success/10" : "border-warning text-warning bg-warning/10"}`}>
-                {s.status}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+      <AdminDataTable title="Turnos programados" description="Vista operativa por franja y barra">
+        <AdminTable>
+          <thead>
+            <tr><th>Horario</th><th>Barra</th><th className="text-right">Voluntarios</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            {SHIFTS.map((s, i) => (
+              <tr key={i}>
+                <td className="font-medium text-slate-950">{s.time}</td>
+                <td>{s.bar}</td>
+                <td className="text-right font-semibold text-slate-950">{s.people}</td>
+                <td><AdminStatusBadge status={s.status} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </AdminTable>
+      </AdminDataTable>
     </div>
   );
 }

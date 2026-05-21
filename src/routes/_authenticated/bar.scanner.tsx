@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { api, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { consumeDrinkTicket, type ConsumeTicketResponse } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
 import { Camera, CheckCircle2, XCircle, Type } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
+import { readTicketIdFromQrPayload } from "@/services/qr/ticket-qr";
 
-interface ConsumeResponse {
-  ticketId: string; status: string; drinkType: string; remainingCredits: number;
-}
 const LABELS: Record<string, string> = { BEER: "Cerveza", WINE: "Vino", WATER: "Agua", SOFT_DRINK: "Refresco" };
 
 export const Route = createFileRoute("/_authenticated/bar/scanner")({
@@ -19,7 +18,7 @@ function ScannerPage() {
   const session = useSession();
   const [mode, setMode] = useState<"camera" | "manual">("camera");
   const [manualValue, setManualValue] = useState("");
-  const [last, setLast] = useState<{ ok: boolean; data?: ConsumeResponse; msg?: string } | null>(null);
+  const [last, setLast] = useState<{ ok: boolean; data?: ConsumeTicketResponse; msg?: string } | null>(null);
   const [scanning, setScanning] = useState(false);
   const elRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<any>(null);
@@ -31,10 +30,7 @@ function ScannerPage() {
     try {
       const consumedByStaffId = session?.volunteerId ?? session?.userId;
       if (!consumedByStaffId) throw new ApiError(400, "Sesión incompleta: falta el identificador del usuario");
-      const res = await api<ConsumeResponse>(`/api/v1/drink-tickets/${ticketId}/consume`, {
-        method: "POST",
-        body: JSON.stringify({ consumedByStaffId }),
-      });
+      const res = await consumeDrinkTicket(ticketId, consumedByStaffId);
       setLast({ ok: true, data: res });
     } catch (e) {
       setLast({ ok: false, msg: e instanceof ApiError ? e.message : "Ticket no válido" });
@@ -57,12 +53,8 @@ function ScannerPage() {
           { facingMode: "environment" },
           { fps: 10, qrbox: (w: number, h: number) => { const s = Math.floor(Math.min(w, h) * 0.7); return { width: s, height: s }; }, aspectRatio: 1 },
           (decoded) => {
-            try {
-              const parsed = JSON.parse(decoded);
-              if (parsed?.ticketId) consume(parsed.ticketId);
-            } catch {
-              if (decoded) consume(decoded);
-            }
+            const ticketId = readTicketIdFromQrPayload(decoded);
+            if (ticketId) consume(ticketId);
           },
           () => {},
         );
@@ -115,8 +107,8 @@ function ScannerPage() {
             onClick={() => {
               const v = manualValue.trim();
               if (!v) return;
-              try { const p = JSON.parse(v); if (p?.ticketId) return consume(p.ticketId); } catch {}
-              consume(v);
+              const ticketId = readTicketIdFromQrPayload(v);
+              if (ticketId) consume(ticketId);
             }}
             className="mt-3 w-full rounded-2xl bg-primary py-3 font-display text-lg text-primary-foreground sticker-lg"
           >
