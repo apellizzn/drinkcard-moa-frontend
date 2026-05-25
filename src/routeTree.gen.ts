@@ -20,9 +20,12 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPaymentSuccessRouteImport } from './routes/_authenticated/payment.success'
 import { Route as AuthenticatedBarScannerRouteImport } from './routes/_authenticated/bar.scanner'
 import { Route as AuthenticatedAppQrRouteImport } from './routes/_authenticated/app.qr'
+import { Route as AuthenticatedAppHistoryRouteImport } from './routes/_authenticated/app.history'
 import { Route as AuthenticatedAppDrinksRouteImport } from './routes/_authenticated/app.drinks'
 import { Route as AuthenticatedAdminVolunteersRouteImport } from './routes/_authenticated/admin.volunteers'
+import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated/admin.tickets'
 import { Route as AuthenticatedAdminShiftsRouteImport } from './routes/_authenticated/admin.shifts'
+import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -80,6 +83,11 @@ const AuthenticatedAppQrRoute = AuthenticatedAppQrRouteImport.update({
   path: '/qr',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppHistoryRoute = AuthenticatedAppHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppDrinksRoute = AuthenticatedAppDrinksRouteImport.update({
   id: '/drinks',
   path: '/drinks',
@@ -91,10 +99,22 @@ const AuthenticatedAdminVolunteersRoute =
     path: '/volunteers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminTicketsRoute =
+  AuthenticatedAdminTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminShiftsRoute =
   AuthenticatedAdminShiftsRouteImport.update({
     id: '/shifts',
     path: '/shifts',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPaymentsRoute =
+  AuthenticatedAdminPaymentsRouteImport.update({
+    id: '/payments',
+    path: '/payments',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminAnalyticsRoute =
@@ -111,9 +131,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/shifts': typeof AuthenticatedAdminShiftsRoute
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
   '/app/drinks': typeof AuthenticatedAppDrinksRoute
+  '/app/history': typeof AuthenticatedAppHistoryRoute
   '/app/qr': typeof AuthenticatedAppQrRoute
   '/bar/scanner': typeof AuthenticatedBarScannerRoute
   '/payment/success': typeof AuthenticatedPaymentSuccessRoute
@@ -125,9 +148,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/shifts': typeof AuthenticatedAdminShiftsRoute
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
   '/app/drinks': typeof AuthenticatedAppDrinksRoute
+  '/app/history': typeof AuthenticatedAppHistoryRoute
   '/app/qr': typeof AuthenticatedAppQrRoute
   '/bar/scanner': typeof AuthenticatedBarScannerRoute
   '/payment/success': typeof AuthenticatedPaymentSuccessRoute
@@ -143,9 +169,12 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/shifts': typeof AuthenticatedAdminShiftsRoute
+  '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
   '/_authenticated/app/drinks': typeof AuthenticatedAppDrinksRoute
+  '/_authenticated/app/history': typeof AuthenticatedAppHistoryRoute
   '/_authenticated/app/qr': typeof AuthenticatedAppQrRoute
   '/_authenticated/bar/scanner': typeof AuthenticatedBarScannerRoute
   '/_authenticated/payment/success': typeof AuthenticatedPaymentSuccessRoute
@@ -161,9 +190,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/admin/analytics'
+    | '/admin/payments'
     | '/admin/shifts'
+    | '/admin/tickets'
     | '/admin/volunteers'
     | '/app/drinks'
+    | '/app/history'
     | '/app/qr'
     | '/bar/scanner'
     | '/payment/success'
@@ -175,9 +207,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin/analytics'
+    | '/admin/payments'
     | '/admin/shifts'
+    | '/admin/tickets'
     | '/admin/volunteers'
     | '/app/drinks'
+    | '/app/history'
     | '/app/qr'
     | '/bar/scanner'
     | '/payment/success'
@@ -192,9 +227,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/payments'
     | '/_authenticated/admin/shifts'
+    | '/_authenticated/admin/tickets'
     | '/_authenticated/admin/volunteers'
     | '/_authenticated/app/drinks'
+    | '/_authenticated/app/history'
     | '/_authenticated/app/qr'
     | '/_authenticated/bar/scanner'
     | '/_authenticated/payment/success'
@@ -288,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppQrRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/history': {
+      id: '/_authenticated/app/history'
+      path: '/history'
+      fullPath: '/app/history'
+      preLoaderRoute: typeof AuthenticatedAppHistoryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/drinks': {
       id: '/_authenticated/app/drinks'
       path: '/drinks'
@@ -302,11 +347,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVolunteersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/tickets': {
+      id: '/_authenticated/admin/tickets'
+      path: '/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/shifts': {
       id: '/_authenticated/admin/shifts'
       path: '/shifts'
       fullPath: '/admin/shifts'
       preLoaderRoute: typeof AuthenticatedAdminShiftsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/payments': {
+      id: '/_authenticated/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AuthenticatedAdminPaymentsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/analytics': {
@@ -321,14 +380,18 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminShiftsRoute: typeof AuthenticatedAdminShiftsRoute
+  AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedAdminVolunteersRoute: typeof AuthenticatedAdminVolunteersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+  AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminShiftsRoute: AuthenticatedAdminShiftsRoute,
+  AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
   AuthenticatedAdminVolunteersRoute: AuthenticatedAdminVolunteersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
@@ -338,12 +401,14 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppDrinksRoute: typeof AuthenticatedAppDrinksRoute
+  AuthenticatedAppHistoryRoute: typeof AuthenticatedAppHistoryRoute
   AuthenticatedAppQrRoute: typeof AuthenticatedAppQrRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppDrinksRoute: AuthenticatedAppDrinksRoute,
+  AuthenticatedAppHistoryRoute: AuthenticatedAppHistoryRoute,
   AuthenticatedAppQrRoute: AuthenticatedAppQrRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }

@@ -1,12 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Sticker } from "@/components/Sticker";
 import { useSession } from "@/hooks/use-session";
 import { UserMenu } from "@/components/UserMenu";
-import { canUseBarScanner, defaultAuthenticatedPath, isAdmin } from "@/lib/session";
+import { canUseBarScanner, defaultAuthenticatedPath, isAdmin, sessionStore } from "@/lib/session";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ArrowRight, CreditCard, QrCode, Beer, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    if (typeof window === "undefined") return;
+    const session = sessionStore.get();
+    if (session) throw redirect({ to: defaultAuthenticatedPath(session.role) as any });
+  },
   component: Index,
   head: () => ({
     meta: [

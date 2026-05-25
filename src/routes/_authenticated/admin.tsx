@@ -1,9 +1,11 @@
 import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
-import { sessionStore } from "@/lib/session";
-import { LayoutDashboard, Users, Calendar, LineChart } from "lucide-react";
+import { isAdmin, sessionStore } from "@/lib/session";
+import { useSession } from "@/hooks/use-session";
+import { LayoutDashboard, Users, Calendar, LineChart, Ticket, CreditCard } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: () => {
+    if (typeof window === "undefined") return;
     const s = sessionStore.get();
     if (!s) throw redirect({ to: "/login" });
     if (s.role !== "ADMIN") throw redirect({ to: "/app" });
@@ -12,15 +14,21 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Panel admin — DrinkCard MOA" }] }),
 });
 
-const NAV: Array<{ to: "/admin" | "/admin/volunteers" | "/admin/shifts" | "/admin/analytics"; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
+const NAV: Array<{ to: "/admin" | "/admin/volunteers" | "/admin/tickets" | "/admin/payments" | "/admin/shifts" | "/admin/analytics"; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/volunteers", label: "Voluntarios", icon: Users },
+  { to: "/admin/tickets", label: "Tickets", icon: Ticket },
+  { to: "/admin/payments", label: "Pagos", icon: CreditCard },
   { to: "/admin/shifts", label: "Turnos", icon: Calendar },
   { to: "/admin/analytics", label: "Analíticas", icon: LineChart },
 ];
 
 function AdminLayout() {
   const { pathname } = useLocation();
+  const session = useSession();
+
+  if (!isAdmin(session?.role)) return null;
+
   return (
     <div className="admin-clean min-h-[calc(100vh-66px)] bg-slate-50">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 md:grid-cols-[220px_1fr]">

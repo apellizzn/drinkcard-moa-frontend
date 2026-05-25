@@ -77,12 +77,12 @@ function QrPage() {
 
       <div role="status" aria-live="polite" className="mt-5 grid gap-3 text-center">
         {isActive && (
-          <div className="rounded-2xl border-2 border-secondary bg-secondary/15 p-4">
-            <div className="flex items-center justify-center gap-2 text-secondary">
-              <Clock className="h-5 w-5" />
-              <span className="font-display text-2xl">{remaining}s</span>
+          <div className="rounded-2xl border-2 border-foreground bg-foreground p-4 text-background shadow-sticker">
+            <div className="flex items-center justify-center gap-2">
+              <Clock className="h-6 w-6" />
+              <span className="font-display text-4xl leading-none">{remaining}s</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Muéstralo en barra antes de que caduque</p>
+            <p className="mt-2 text-xs font-medium opacity-80">Muéstralo en barra antes de que caduque</p>
           </div>
         )}
         {isConsumed && (

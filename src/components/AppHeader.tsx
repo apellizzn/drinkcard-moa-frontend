@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { UserMenu } from "./UserMenu";
 import { ScanLine } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
-import { canUseBarScanner } from "@/lib/session";
+import { canUseBarScanner, defaultAuthenticatedPath } from "@/lib/session";
 import { BrandLogo } from "./BrandLogo";
 
 export function AppHeader() {
@@ -10,7 +10,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background border-b-2 border-foreground">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <BrandLogo markClassName="h-9 w-6 text-xs" />
+        <BrandLogo to={session ? defaultAuthenticatedPath(session.role) : "/"} />
         <div className="flex items-center gap-2">
           {canUseBarScanner(session?.role) && (
             <Link
