@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,26 +11,48 @@ import { toast } from "sonner";
 const schema = z.object({
   firstName: z.string().min(1, "Tu nombre"),
   lastName: z.string().min(1, "Tu apellido"),
-  email: z.string().email("Email no válido"),
   password: z.string().min(8, "Mínimo 8 caracteres").max(20, "Máximo 20 caracteres"),
 });
 type FormData = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/register")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    invitation_token: typeof s.invitation_token === "string" ? s.invitation_token : undefined,
+  }),
   component: RegisterPage,
   head: () => ({ meta: [{ title: "Crear cuenta — DrinkCard MOA" }] }),
 });
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { invitation_token } = useSearch({ from: "/register" });
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
+  if (!invitation_token) {
+    return (
+      <AuthShell title="Invitación requerida" subtitle="No se puede crear la cuenta">
+        <div className="space-y-4 text-sm text-muted-foreground">
+          <p>
+            Para registrarte necesitas un enlace de invitación. Pide a un administrador que te envíe una
+            invitación por email.
+          </p>
+          <p>
+            ¿Ya tienes cuenta?{" "}
+            <Link to="/login" search={{ redirect: undefined }} className="text-primary underline-offset-4 hover:underline">
+              Inicia sesión
+            </Link>
+          </p>
+        </div>
+      </AuthShell>
+    );
+  }
+
   const onSubmit = async (data: FormData) => {
     try {
-      await registerUser(data);
-      const res = await loginUser({ email: data.email, password: data.password });
+      const registered = await registerUser({ ...data, invitationToken: invitation_token });
+      const res = await loginUser({ email: registered.email, password: data.password });
       saveLoginSession(res, { firstName: data.firstName, lastName: data.lastName });
       toast.success("¡Cuenta creada! Bienvenido al festival.");
       navigate({ to: "/app" });
@@ -40,7 +62,7 @@ function RegisterPage() {
   };
 
   return (
-    <AuthShell title="Crea tu cuenta" subtitle="¡Bienvenido!">
+    <AuthShell title="Completa tu cuenta" subtitle="¡Bienvenido al equipo!">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Nombre" error={errors.firstName?.message}>
@@ -50,9 +72,6 @@ function RegisterPage() {
             <input {...register("lastName")} className="input" autoComplete="family-name" />
           </Field>
         </div>
-        <Field label="Email" error={errors.email?.message}>
-          <input type="email" {...register("email")} className="input" autoComplete="email" />
-        </Field>
         <Field label="Contraseña" error={errors.password?.message}>
           <input type="password" {...register("password")} className="input" autoComplete="new-password" />
           <span className="mt-1 block text-xs text-muted-foreground">Entre 8 y 20 caracteres.</span>
@@ -64,7 +83,10 @@ function RegisterPage() {
           {isSubmitting ? "Creando cuenta..." : "Crear mi cuenta"}
         </button>
         <p className="text-center text-sm text-muted-foreground">
-          ¿Ya tienes cuenta? <Link to="/login" className="text-primary underline-offset-4 hover:underline">Inicia sesión</Link>
+          ¿Ya tienes cuenta?{" "}
+          <Link to="/login" search={{ redirect: undefined }} className="text-primary underline-offset-4 hover:underline">
+            Inicia sesión
+          </Link>
         </p>
       </form>
     </AuthShell>

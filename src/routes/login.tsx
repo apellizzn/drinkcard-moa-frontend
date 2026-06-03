@@ -69,7 +69,7 @@ function LoginPage() {
           {isSubmitting ? "Entrando..." : "Entrar"}
         </button>
         <p className="text-center text-sm text-muted-foreground">
-          ¿Primera vez? <Link to="/register" className="text-primary underline-offset-4 hover:underline">Crea tu cuenta</Link>
+          ¿Primera vez? <Link to="/register" search={{ invitation_token: undefined }} className="text-primary underline-offset-4 hover:underline">Crea tu cuenta</Link>
         </p>
       </form>
     </AuthShell>
