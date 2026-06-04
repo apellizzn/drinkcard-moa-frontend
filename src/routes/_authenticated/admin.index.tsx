@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CreditCard, ReceiptText, TicketCheck, TrendingUp, Users, Wallet } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { CreditCard, Mail, ReceiptText, TicketCheck, TrendingUp, Users, Wallet } from "lucide-react";
 import {
+  inviteUser,
   listDrinkCardAccounts,
   listAllAdminPayments,
   listAdminTickets,
@@ -11,6 +16,7 @@ import {
   type UserSummary,
 } from "@/services/api/admin-service";
 import type { DrinkCardAccount } from "@/services/api/drink-card-service";
+import { ApiError } from "@/services/api/http-client";
 
 type AccountResponse = DrinkCardAccount[] | PageResponse<DrinkCardAccount>;
 
@@ -53,6 +59,8 @@ function Dashboard() {
         <MiniMetric icon={TicketCheck} label="Consumiciones servidas" value={consumedTickets.length} tone="green" />
         <MiniMetric icon={ReceiptText} label="Pagos procesados" value={revenuePayList.length} tone="amber" />
       </div>
+
+      <InviteCard />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="admin-panel p-5 lg:col-span-2">
@@ -177,4 +185,61 @@ function arr<T>(x: unknown): T[] {
   if (Array.isArray(x)) return x as T[];
   if (x && typeof x === "object" && "content" in (x as any) && Array.isArray((x as any).content)) return (x as any).content;
   return [];
+}
+
+const inviteSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+type InviteForm = z.infer<typeof inviteSchema>;
+
+function InviteCard() {
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<InviteForm>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: { email: "" },
+  });
+
+  const onSubmit = handleSubmit(async ({ email }) => {
+    try {
+      await inviteUser({ email, role: "VOLUNTEER" });
+      toast.success(`Invitación enviada a ${email}`);
+      reset();
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Error al enviar la invitación";
+      toast.error(msg);
+    }
+  });
+
+  return (
+    <section className="admin-panel p-5">
+      <div className="flex items-start gap-3">
+        <div className="grid h-10 w-10 place-items-center rounded-lg bg-blue-50 text-blue-600">
+          <Mail className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-base font-semibold text-slate-950">Invitar voluntario</h2>
+          <p className="mt-1 text-sm text-slate-500">Envía un enlace de registro al email indicado.</p>
+        </div>
+      </div>
+      <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="flex-1">
+          <input
+            type="email"
+            placeholder="email@ejemplo.com"
+            autoComplete="email"
+            disabled={isSubmitting}
+            {...register("email")}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 disabled:opacity-60"
+          />
+          {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
+        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+        >
+          {isSubmitting ? "Enviando..." : "Enviar invitación"}
+        </button>
+      </form>
+    </section>
+  );
 }

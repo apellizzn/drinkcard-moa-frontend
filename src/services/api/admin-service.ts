@@ -96,6 +96,25 @@ export function listAdminTickets(params: AdminListParams = {}) {
   return http<PageResponse<AdminDrinkTicketSummary>>(`/api/v1/admin/drink-tickets${qs({ size: 20, sort: "createdAt,desc", ...params })}`);
 }
 
+export interface InviteUserRequest {
+  email: string;
+  role: "VOLUNTEER" | "BAR_STAFF" | "ADMIN";
+}
+
+export interface InvitationResponse {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
+export function inviteUser(data: InviteUserRequest) {
+  return http<InvitationResponse>("/api/v1/admin/invitations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 function qs(params: Record<string, string | number | undefined>) {
   const sp = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
