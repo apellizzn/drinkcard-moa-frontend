@@ -14,6 +14,12 @@ export interface ConfirmPaymentResponse {
   amount?: number;
 }
 
+export interface PaymentStatusResponse {
+  paymentId: string;
+  status: string;
+  amount?: number;
+}
+
 export interface PaymentSummary {
   paymentId: string;
   volunteerId: string;
@@ -36,6 +42,10 @@ export function createPaymentCheckout(volunteerId: string) {
 
 export function confirmPayment(paymentId: string) {
   return http<ConfirmPaymentResponse>(`/api/v1/payments/${paymentId}/confirm`, { method: "POST" });
+}
+
+export function getPaymentStatus(paymentId: string) {
+  return http<PaymentStatusResponse>(`/api/v1/payments/${paymentId}/status`);
 }
 
 export function listCurrentVolunteerPayments(size = 20) {
