@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -69,7 +69,7 @@ function LoginPage() {
           {isSubmitting ? "Entrando..." : "Entrar"}
         </button>
         <p className="text-center text-sm text-muted-foreground">
-          ¿Primera vez? <Link to="/register" search={{ invitation_token: undefined }} className="text-primary underline-offset-4 hover:underline">Crea tu cuenta</Link>
+          ¿Sin cuenta? Pide a un administrador que te envíe una invitación por email.
         </p>
       </form>
     </AuthShell>

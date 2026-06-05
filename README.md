@@ -8,7 +8,9 @@
 
 DrinkCard MOA Frontend is the web application for the DrinkCard MOA festival drink-card platform.
 
-The application lets volunteers register, log in, buy drink credits, generate one-use QR drink tickets, and review their activity. It also includes a bar scanner for QR validation and an admin area for organizers to monitor users, accounts, payments, tickets, and analytics.
+The application lets volunteers log in with an admin-issued invitation, buy drink credits, generate one-use QR drink tickets, and review their activity. It also includes a bar scanner for QR validation and an admin area for organizers to monitor users, accounts, payments, tickets, and analytics.
+
+Account creation is **invitation-only**: there is no public sign-up. Admins send an email invitation from the admin dashboard, and the recipient completes their account through the invitation link.
 
 This repository contains the **React, TypeScript, TanStack Start, and Vite frontend**. The backend API is implemented separately with Spring Boot.
 
@@ -33,7 +35,7 @@ DrinkCard MOA is designed around three user experiences:
 
 | Experience | Purpose |
 | --- | --- |
-| Volunteer | Register, log in, view credits, buy credits, choose a drink, generate QR tickets, and review history. |
+| Volunteer | Accept invitation, log in, view credits, buy credits, choose a drink, generate QR tickets, and review history. |
 | Bar staff | Open the scanner and consume valid QR tickets. |
 | Organizer | Review operational data from the admin dashboard, users, tickets, payments, and analytics. |
 
@@ -44,7 +46,8 @@ The frontend intentionally gives the volunteer area a more festival-oriented vis
 | Area | Status |
 | --- | --- |
 | Public landing page | Implemented |
-| Register and login | Implemented |
+| Invitation-based account creation and login | Implemented |
+| Admin invitation flow (email link with token) | Implemented |
 | Session persistence | Implemented |
 | Volunteer DrinkCard page | Implemented |
 | Payment checkout redirect | Implemented |
@@ -86,16 +89,23 @@ Main frontend responsibilities:
 
 ### Volunteer flow
 
+Account creation requires an invitation issued by an admin. The invitation email contains a link with an `invitation_token` that the volunteer uses to complete their account. After that, login is by email and password.
+
 ```mermaid
 sequenceDiagram
+    participant Admin
     participant User
     participant Frontend
     participant API
     participant SumUp
     participant Bar
 
-    User->>Frontend: Register / Login
-    Frontend->>API: POST /api/v1/auth/register or /login
+    Admin->>API: POST /api/v1/admin/invitations (email, role)
+    API-->>User: Invitation email with token link
+    User->>Frontend: Open /register?invitation_token=...
+    Frontend->>API: POST /api/v1/auth/register (token + name + password)
+    API-->>Frontend: Account created
+    Frontend->>API: POST /api/v1/auth/login
     API-->>Frontend: JWT + user role
     User->>Frontend: Buy credits
     Frontend->>API: POST /api/v1/payments/checkout
@@ -285,7 +295,7 @@ The frontend currently uses these backend areas:
 
 | Frontend area | Backend endpoints |
 | --- | --- |
-| Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
+| Auth | `POST /api/v1/auth/register` (invitation-only, requires `invitationToken`), `POST /api/v1/auth/login` |
 | Current user | `GET /api/v1/users/me` |
 | DrinkCard | `GET /api/v1/drink-card-accounts/me` |
 | Payments | `POST /api/v1/payments/checkout`, `POST /api/v1/payments/{paymentId}/confirm`, `GET /api/v1/payments/me` |

@@ -30,7 +30,6 @@ export function createPaymentCheckout(volunteerId: string) {
     method: "POST",
     body: JSON.stringify({
       volunteerId,
-      idempotencyKey: crypto.randomUUID(),
     }),
   });
 }
