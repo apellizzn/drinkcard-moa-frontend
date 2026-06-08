@@ -73,19 +73,36 @@ function Index() {
               Compra créditos, elige tu bebida y muestra el QR en barra. Tan rápido como pedir un trago.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link
-                to={session ? (defaultAuthenticatedPath(session.role) as any) : "/register"}
-                className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-display text-lg tracking-wide text-primary-foreground sticker-lg glow-pink hover:translate-y-[-1px] transition-transform"
-              >
-                {session ? (isAdmin(session.role) ? "Ir al panel admin" : "Ir a mi tarjeta") : "Conseguir mi tarjeta"} <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link
-                to={session ? (canUseBarScanner(session.role) ? "/bar/scanner" : "/app/drinks") : "/login"}
-                className="inline-flex items-center gap-2 rounded-2xl bg-card px-6 py-3 font-display text-lg tracking-wide border-2 hover:bg-muted transition-colors"
-              >
-                {session ? (canUseBarScanner(session.role) ? "Escáner de barra" : "Pedir bebida") : "Ya tengo cuenta"}
-              </Link>
+              {session ? (
+                <>
+                  <Link
+                    to={defaultAuthenticatedPath(session.role) as any}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-display text-lg tracking-wide text-primary-foreground sticker-lg glow-pink hover:translate-y-[-1px] transition-transform"
+                  >
+                    {isAdmin(session.role) ? "Ir al panel admin" : "Ir a mi tarjeta"} <ArrowRight className="h-5 w-5" />
+                  </Link>
+                  <Link
+                    to={canUseBarScanner(session.role) ? "/bar/scanner" : "/app/drinks"}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-card px-6 py-3 font-display text-lg tracking-wide border-2 hover:bg-muted transition-colors"
+                  >
+                    {canUseBarScanner(session.role) ? "Escáner de barra" : "Pedir bebida"}
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  search={{ redirect: undefined }}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-display text-lg tracking-wide text-primary-foreground sticker-lg glow-pink hover:translate-y-[-1px] transition-transform"
+                >
+                  Iniciar sesión <ArrowRight className="h-5 w-5" />
+                </Link>
+              )}
             </div>
+            {!session && (
+              <p className="mt-4 text-sm text-muted-foreground">
+                ¿Sin cuenta? El acceso es por invitación. Pide a un administrador que te envíe una.
+              </p>
+            )}
           </div>
         </section>
 
