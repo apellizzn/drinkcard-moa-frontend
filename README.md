@@ -172,28 +172,25 @@ npm run lint
 The frontend reads Vite variables from `.env`.
 
 ```env
-# Optional in development. Leave empty to use the Vite /api proxy.
-# VITE_API_BASE_URL=http://localhost:8080
-
-# Used by vite.config.ts for local proxy and ngrok host checks.
+# Used by vite.config.ts for the local /api dev proxy and ngrok host checks.
 VITE_API_PROXY_TARGET=http://localhost:8080
 VITE_ALLOWED_HOSTS=uncharted-apply-upstart.ngrok-free.dev
 ```
 
 | Variable | Purpose |
 | --- | --- |
-| `VITE_API_BASE_URL` | Direct API base URL, **inlined at build time**. Empty in development -> requests go through the Vite `/api` proxy. Empty in production -> requests are issued same-origin. Set to an absolute URL (e.g. `https://api.example.com`) when deploying. |
-| `VITE_API_PROXY_TARGET` | Backend target used by Vite proxy. Default: `http://localhost:8080`. |
+| `VITE_API_PROXY_TARGET` | Backend target used by the Vite dev proxy. Default: `http://localhost:8080`. The production equivalent is `API_UPSTREAM_URL` in `wrangler.jsonc`. |
 | `VITE_ALLOWED_HOSTS` | Comma-separated list of extra hosts accepted by Vite, useful for ngrok. |
 
-Recommended local setup:
+The browser bundle always issues same-origin requests under `/api/*`. Both
+environments proxy those requests server-side to the real backend:
 
-```env
-VITE_API_BASE_URL=
-VITE_API_PROXY_TARGET=http://localhost:8080
-```
+- **Development:** Vite's dev server proxies `/api/*` to `VITE_API_PROXY_TARGET`.
+- **Production:** the Cloudflare Worker proxies `/api/*` to `API_UPSTREAM_URL`
+  (see `wrangler.jsonc` and `src/server.ts`).
 
-With this setup, frontend requests such as `/api/v1/auth/login` are proxied by Vite to the Spring Boot backend.
+This avoids CORS, keeps cookies first-party, and lets us swap the upstream per
+environment without rebuilding the client bundle.
 
 ## Docker
 
@@ -270,32 +267,36 @@ https://drinkcard-moa-frontend.<account>.workers.dev
 
 ### Configuring the API URL per environment
 
-`VITE_API_BASE_URL` is a **build-time** variable. Vite inlines it into the
-client bundle during `vite build`, so it must be present in the shell
-environment when you run the deploy script:
+The browser never calls the backend directly — it always issues same-origin
+requests under `/api/*`. The Cloudflare Worker (see `src/server.ts`) intercepts
+those requests and proxies them server-side to the URL configured in the
+`API_UPSTREAM_URL` Worker variable.
+
+`API_UPSTREAM_URL` is declared in `wrangler.jsonc` under `vars`. Override it
+per environment at deploy time:
 
 ```bash
-VITE_API_BASE_URL=https://api.example.com bun run deploy
+bunx wrangler deploy \
+  --config dist/server/wrangler.json \
+  --var API_UPSTREAM_URL:https://api.example.com
 ```
 
-If unset, the build falls back to same-origin requests (no host prefix), which
-works when the API is served from the same domain as the Worker.
+Or define environment-specific blocks (`[env.staging.vars]`,
+`[env.production.vars]`) in `wrangler.jsonc` and deploy with
+`wrangler deploy --env production`.
 
-> Note: putting `VITE_API_BASE_URL` under `vars` in `wrangler.jsonc` does **not**
-> work for the client. That block is a runtime Worker binding, which arrives
-> after the bundle is already compiled and shipped to the browser. Use it only
-> for variables consumed by the SSR Worker code itself.
+If `API_UPSTREAM_URL` is missing the proxy returns 500.
 
 ### Adding environment variables or secrets
 
-For variables read by the SSR Worker at **runtime**, add them under `vars` in
+For variables read by the SSR Worker at runtime, add them under `vars` in
 `wrangler.jsonc`:
 
 ```jsonc
 {
   "name": "drinkcard-moa-frontend",
   "vars": {
-    "MY_RUNTIME_FLAG": "true"
+    "API_UPSTREAM_URL": "https://api.example.com"
   }
 }
 ```

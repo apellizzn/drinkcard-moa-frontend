@@ -7,6 +7,10 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+interface WorkerEnv {
+  API_UPSTREAM_URL?: string;
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -23,6 +27,71 @@ function brandedErrorResponse(): Response {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
+}
+
+// Hop-by-hop headers (RFC 7230 §6.1) — must not be forwarded by a proxy.
+const HOP_BY_HOP_HEADERS = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "host",
+]);
+
+function stripHopByHopHeaders(headers: Headers): Headers {
+  const out = new Headers();
+  headers.forEach((value, key) => {
+    if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+      out.set(key, value);
+    }
+  });
+  return out;
+}
+
+// Server-side proxy for /api/* requests. The browser always calls /api/* on the
+// Worker origin (no CORS, first-party cookies); the Worker then forwards to the
+// real backend identified by `API_UPSTREAM_URL` from wrangler.jsonc `vars`.
+async function proxyApiRequest(request: Request, env: WorkerEnv): Promise<Response> {
+  const upstream = env.API_UPSTREAM_URL?.trim().replace(/\/$/, "");
+  if (!upstream) {
+    return new Response(
+      JSON.stringify({ message: "API_UPSTREAM_URL is not configured" }),
+      { status: 500, headers: { "content-type": "application/json" } },
+    );
+  }
+
+  const incomingUrl = new URL(request.url);
+  const targetUrl = `${upstream}${incomingUrl.pathname}${incomingUrl.search}`;
+
+  const init: RequestInit = {
+    method: request.method,
+    headers: stripHopByHopHeaders(request.headers),
+    redirect: "manual",
+  };
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    init.body = request.body;
+    // Required by the Workers fetch implementation when streaming a body.
+    (init as RequestInit & { duplex?: "half" }).duplex = "half";
+  }
+
+  try {
+    const upstreamResponse = await fetch(targetUrl, init);
+    return new Response(upstreamResponse.body, {
+      status: upstreamResponse.status,
+      statusText: upstreamResponse.statusText,
+      headers: stripHopByHopHeaders(upstreamResponse.headers),
+    });
+  } catch (error) {
+    console.error("API proxy error:", error);
+    return new Response(
+      JSON.stringify({ message: "Upstream API unreachable" }),
+      { status: 502, headers: { "content-type": "application/json" } },
+    );
+  }
 }
 
 function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boolean {
@@ -67,8 +136,12 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 }
 
 export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
+  async fetch(request: Request, env: WorkerEnv, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname.startsWith("/api/")) {
+        return await proxyApiRequest(request, env);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

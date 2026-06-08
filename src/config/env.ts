@@ -1,14 +1,12 @@
-// `VITE_API_BASE_URL` is a build-time variable. Vite inlines it during `vite build`,
-// so it must be set in the shell environment when building/deploying (e.g.
-// `VITE_API_BASE_URL=https://api.example.com bun run deploy`). Setting it in
-// `wrangler.jsonc` `vars` does NOT work — that block only injects runtime Worker
-// bindings, which arrive after the client bundle has already been compiled.
+// The browser bundle always issues same-origin requests under `/api/*`.
 //
-// - Empty string in DEV  -> requests go through the Vite `/api` proxy.
-// - Empty string in PROD -> requests are issued same-origin (relative URLs).
-// - Set value            -> requests are issued against that absolute URL.
-const rawApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-
+// - In development, Vite's dev server proxies `/api/*` to the backend
+//   (see `VITE_API_PROXY_TARGET` in vite.config.ts).
+// - In production, the Cloudflare Worker proxies `/api/*` to the real backend
+//   (see `API_UPSTREAM_URL` in wrangler.jsonc and src/server.ts).
+//
+// Same-origin avoids CORS, keeps cookies first-party, and lets us swap the
+// upstream per environment without rebuilding the client bundle.
 export const env = {
-  apiBaseUrl: rawApiBaseUrl ? rawApiBaseUrl.replace(/\/$/, "") : "",
+  apiBaseUrl: "",
 };

@@ -4,14 +4,11 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
-  "observability": {
-    "logs": {
-      "enabled": true
-    }
+  // Backend the Worker proxies /api/* requests to (server-side, same-origin
+  // from the browser's perspective). Override per environment with:
+  //   bunx wrangler deploy --var API_UPSTREAM_URL:https://api.example.com
+  // Or define [env.<name>.vars] blocks below for staging/production.
+  "vars": {
+    "API_UPSTREAM_URL": "http://localhost:8080"
   }
-  // NOTE: `VITE_API_BASE_URL` is build-time (Vite inlines it during `vite build`).
-  // Set it in the shell when deploying:
-  //   VITE_API_BASE_URL=https://api.example.com bun run deploy
-  // Putting it under `vars` here only exposes it to the Worker at runtime,
-  // which is too late — the client bundle is already compiled.
 }
