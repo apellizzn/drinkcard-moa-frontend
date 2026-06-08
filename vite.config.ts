@@ -9,7 +9,7 @@ import { loadEnv } from "vite";
 
 const localEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
 
-const allowedHosts = (process.env.VITE_ALLOWED_HOSTS ?? localEnv.VITE_ALLOWED_HOSTS ?? "uncharted-apply-upstart.ngrok-free.dev")
+const allowedHosts = (process.env.VITE_ALLOWED_HOSTS ?? localEnv.VITE_ALLOWED_HOSTS ?? "uncharted-apply-upstart.ngrok-free.dev,ed65-2a02-a457-f45c-0-ada7-3b73-7aa7-aeb7.ngrok-free.app")
   .split(",")
   .map((host) => host.trim())
   .filter(Boolean);
