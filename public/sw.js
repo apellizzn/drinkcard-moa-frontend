@@ -7,11 +7,12 @@
 // Bump CACHE_VERSION on any change to this file or the precached asset list to force
 // a clean update on existing clients.
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const STATIC_CACHE = `drinkcard-static-${CACHE_VERSION}`;
-// NOTE: Cloudflare's asset handler rewrites `/offline.html` → 307 → `/offline`,
-// which would break cache.addAll. We precache the file under both keys so the
-// fetch handler can hit either one regardless of the rewrite behavior.
+// NOTE: Cloudflare's asset handler rewrites `/offline.html` → 307 → `/offline`.
+// We follow the redirect during install, then store the offline page under BOTH
+// keys as a fresh non-redirected Response so the SW can serve it without the
+// browser trying to re-resolve a redirected response (which would 404 offline).
 const OFFLINE_URL = "/offline.html";
 const OFFLINE_FALLBACK_URL = "/offline";
 
@@ -26,9 +27,18 @@ const PRECACHE_URLS = [
   "/icons/apple-touch-icon.png",
 ];
 
+// Construct a fresh Response that drops the `redirected` flag so the browser
+// won't try to re-navigate to the resolved URL when the SW serves it.
+async function freshResponse(response) {
+  const body = await response.clone().blob();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 // Try to precache a URL but don't fail the whole install if a single one breaks.
-// Using cache.put with `redirect: "follow"` lets us handle the Cloudflare .html
-// rewrite transparently and still end up with a usable Response in the cache.
 async function precache(cache, urls) {
   await Promise.all(
     urls.map(async (url) => {
@@ -38,7 +48,7 @@ async function precache(cache, urls) {
           console.warn(`[sw] precache skip ${url}: HTTP ${response.status}`);
           return;
         }
-        await cache.put(url, response);
+        await cache.put(url, response.redirected ? await freshResponse(response) : response);
       } catch (error) {
         console.warn(`[sw] precache skip ${url}:`, error);
       }
@@ -53,13 +63,15 @@ self.addEventListener("install", (event) => {
       await precache(cache, PRECACHE_URLS);
 
       // Cache the offline page under BOTH the original and redirected URLs so the
-      // fetch handler can serve it regardless of how the request arrived.
+      // fetch handler can serve it regardless of how the request arrived. We also
+      // strip the `redirected` flag — returning a redirected Response from the SW
+      // makes the browser re-navigate to its resolved URL, which would fail offline.
       try {
         const response = await fetch(OFFLINE_URL, { cache: "reload", redirect: "follow" });
         if (response.ok) {
-          // Clone before storing so we can store under the second key too.
-          await cache.put(OFFLINE_URL, response.clone());
-          await cache.put(OFFLINE_FALLBACK_URL, response);
+          const clean = await freshResponse(response);
+          await cache.put(OFFLINE_URL, clean.clone());
+          await cache.put(OFFLINE_FALLBACK_URL, clean);
         } else {
           console.warn(`[sw] offline fallback fetch returned ${response.status}`);
         }
