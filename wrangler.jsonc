@@ -1,7 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "drinkcard-moa-frontend",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  // Backend the Worker proxies /api/* requests to (server-side, same-origin
+  // from the browser's perspective). Override per environment with:
+  //   bunx wrangler deploy --var API_UPSTREAM_URL:https://api.example.com
+  // Or define [env.<name>.vars] blocks below for staging/production.
+  "vars": {
+    "API_UPSTREAM_URL": "http://localhost:8080"
+  }
 }

@@ -8,6 +8,7 @@ import {
   Link,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { useServiceWorker } from "@/hooks/use-service-worker";
 
 import appCss from "../styles.css?url";
 
@@ -74,10 +75,23 @@ export const Route = createRootRoute({
       { property: "og:title", content: "DrinkCard MOA" },
       { property: "og:description", content: "Tu tarjeta digital del festival." },
       { property: "og:type", content: "website" },
-      { name: "theme-color", content: "#fafaf6" },
+      // PWA — light browser chrome by default, brand red when installed/dark UA.
+      { name: "theme-color", content: "#fafaf6", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#e30613", media: "(prefers-color-scheme: dark)" },
+      // iOS — make Add-to-Home-Screen behave like an installed app.
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "DrinkCard" },
+      { name: "application-name", content: "DrinkCard MOA" },
+      { name: "format-detection", content: "telephone=no" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icons/icon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png", sizes: "180x180" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -111,6 +125,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useServiceWorker();
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
