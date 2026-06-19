@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { canUseBarScanner, isAdmin, sessionStore } from "@/lib/session";
 import { useSession } from "@/hooks/use-session";
+import { logoutUser } from "@/services/api/auth-service";
 import { toast } from "sonner";
 
 export function UserMenu() {
@@ -17,7 +18,22 @@ export function UserMenu() {
   const navigate = useNavigate();
   if (!session) return null;
 
-  const initials = `${session.firstName?.[0] ?? session.email[0]}${session.lastName?.[0] ?? ""}`.toUpperCase();
+  const initials =
+    `${session.firstName?.[0] ?? session.email[0]}${session.lastName?.[0] ?? ""}`.toUpperCase();
+  const handleLogout = async () => {
+    const refreshToken = sessionStore.get()?.refreshToken;
+    if (refreshToken) {
+      try {
+        await logoutUser({ refreshToken });
+      } catch {
+        // Local logout should still complete if the backend is unreachable.
+      }
+    }
+
+    sessionStore.clear();
+    toast.success("Sesión cerrada");
+    navigate({ to: "/" });
+  };
 
   return (
     <DropdownMenu>
@@ -37,7 +53,9 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col">
-            <span className="font-medium truncate">{session.firstName ? `${session.firstName} ${session.lastName ?? ""}` : session.email}</span>
+            <span className="font-medium truncate">
+              {session.firstName ? `${session.firstName} ${session.lastName ?? ""}` : session.email}
+            </span>
             <span className="text-xs text-muted-foreground truncate">{session.email}</span>
           </div>
         </DropdownMenuLabel>
@@ -65,11 +83,7 @@ export function UserMenu() {
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => {
-            sessionStore.clear();
-            toast.success("Sesión cerrada");
-            navigate({ to: "/" });
-          }}
+          onClick={() => void handleLogout()}
           className="cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
