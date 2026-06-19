@@ -70,6 +70,18 @@ export function listDrinkCardAccounts() {
   return http<DrinkCardAccount[] | PageResponse<DrinkCardAccount>>("/api/v1/admin/drink-card-accounts");
 }
 
+export function enableDrinkCardAccountRefill(volunteerId: string) {
+  return http<DrinkCardAccount>(`/api/v1/admin/drink-card-accounts/${volunteerId}/enable-refill`, {
+    method: "POST",
+  });
+}
+
+export function disableDrinkCardAccountRefill(volunteerId: string) {
+  return http<DrinkCardAccount>(`/api/v1/admin/drink-card-accounts/${volunteerId}/disable-refill`, {
+    method: "POST",
+  });
+}
+
 export function listRecentPayments(size = 10) {
   return http<PageResponse<AdminPaymentSummary>>(`/api/v1/admin/payments?size=${size}&sort=createdAt,desc`);
 }
