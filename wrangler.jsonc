@@ -9,6 +9,6 @@
   //   bunx wrangler deploy --var API_UPSTREAM_URL:https://api.example.com
   // Or define [env.<name>.vars] blocks below for staging/production.
   "vars": {
-    "API_UPSTREAM_URL": "http://localhost:8080"
+    "API_UPSTREAM_URL": "https://api.miraonair.app"
   }
 }

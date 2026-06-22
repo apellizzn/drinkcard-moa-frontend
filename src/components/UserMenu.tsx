@@ -12,34 +12,22 @@ import { canUseBarScanner, isAdmin, sessionStore } from "@/lib/session";
 import { useSession } from "@/hooks/use-session";
 import { logoutUser } from "@/services/api/auth-service";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n-react";
 
 export function UserMenu() {
   const session = useSession();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   if (!session) return null;
 
   const initials =
     `${session.firstName?.[0] ?? session.email[0]}${session.lastName?.[0] ?? ""}`.toUpperCase();
-  const handleLogout = async () => {
-    const refreshToken = sessionStore.get()?.refreshToken;
-    if (refreshToken) {
-      try {
-        await logoutUser({ refreshToken });
-      } catch {
-        // Local logout should still complete if the backend is unreachable.
-      }
-    }
-
-    sessionStore.clear();
-    toast.success("Sesión cerrada");
-    navigate({ to: "/" });
-  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          aria-label="Menú de usuario"
+          aria-label={t("nav.userMenu")}
           className="flex items-center gap-2 rounded-full border-2 border-foreground/10 bg-card pl-1 pr-3 py-1 hover:bg-muted transition-colors sticker"
         >
           <span className="grid h-8 w-8 place-items-center rounded-full bg-primary font-display text-primary-foreground">
@@ -63,30 +51,34 @@ export function UserMenu() {
         {!isAdmin(session.role) && (
           <DropdownMenuItem asChild>
             <Link to="/app" className="cursor-pointer">
-              <User className="mr-2 h-4 w-4" /> Mi tarjeta
+              <User className="mr-2 h-4 w-4" /> {t("nav.myCard")}
             </Link>
           </DropdownMenuItem>
         )}
         {canUseBarScanner(session.role) && (
           <DropdownMenuItem asChild>
             <Link to="/bar/scanner" className="cursor-pointer">
-              <ScanLine className="mr-2 h-4 w-4" /> Escáner barra
+              <ScanLine className="mr-2 h-4 w-4" /> {t("nav.barScanner")}
             </Link>
           </DropdownMenuItem>
         )}
         {session.role === "ADMIN" && (
           <DropdownMenuItem asChild>
             <Link to="/admin" className="cursor-pointer">
-              <ShieldCheck className="mr-2 h-4 w-4" /> Panel admin
+              <ShieldCheck className="mr-2 h-4 w-4" /> {t("nav.adminPanel")}
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => void handleLogout()}
+          onClick={() => {
+            sessionStore.clear();
+            toast.success(t("nav.loggedOut"));
+            navigate({ to: "/" });
+          }}
           className="cursor-pointer text-destructive focus:text-destructive"
         >
-          <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
+          <LogOut className="mr-2 h-4 w-4" /> {t("nav.logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,4 +1,5 @@
 import { env } from "@/config/env";
+import { translateNow } from "@/lib/i18n";
 import { normalizeSession, SESSION_STORAGE_KEY, sessionStore, type Session } from "@/lib/session";
 
 export class ApiError extends Error {
@@ -59,7 +60,7 @@ async function request(
   try {
     res = await fetch(`${env.apiBaseUrl}${path}`, { ...rest, headers: h });
   } catch (e) {
-    throw new ApiError(0, "No se puede conectar con el servidor", e);
+    throw new ApiError(0, translateNow("errors.network"), e);
   }
 
   const text = await res.text();
@@ -221,7 +222,7 @@ function apiErrorFromResponse(response: Response, data: unknown) {
     (data && typeof data === "object" && "error" in data && (data as { error?: unknown }).error) ||
     (typeof data === "string" && data.trim()) ||
     response.statusText ||
-    "Error en la petición";
+    translateNow("errors.request");
   return new ApiError(response.status, String(msg), data);
 }
 

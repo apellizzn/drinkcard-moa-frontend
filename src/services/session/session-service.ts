@@ -2,8 +2,9 @@ import { normalizeSession, sessionStore, type Role, type Session } from "@/lib/s
 
 export interface LoginResponse {
   token: string;
-  refreshToken: string;
+  refreshToken?: string;
   volunteerId: string;
+  userId?: string;
   email: string;
   role: Role;
 }
