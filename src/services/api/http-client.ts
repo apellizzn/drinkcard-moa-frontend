@@ -213,13 +213,6 @@ function parseRefreshLock(raw: string | null): { owner: string; expiresAt: numbe
 }
 
 function apiErrorFromResponse(response: Response, data: unknown) {
-  if (typeof data === "string") {
-    const text = data.trim();
-    if (looksLikeHtml(text)) {
-      return new ApiError(response.status, friendlyHtmlError(text, response), text);
-    }
-  }
-
   const msg =
     (data &&
       typeof data === "object" &&
@@ -230,20 +223,6 @@ function apiErrorFromResponse(response: Response, data: unknown) {
     response.statusText ||
     "Error en la petición";
   return new ApiError(response.status, String(msg), data);
-}
-
-function looksLikeHtml(text: string) {
-  return /^<!doctype html/i.test(text) || /^<html[\s>]/i.test(text);
-}
-
-function friendlyHtmlError(text: string, response: Response) {
-  if (text.includes("Direct IP access not allowed") || text.includes("Error 1003")) {
-    return "La API ha risposto con Cloudflare 1003: upstream o Host non configurato correttamente.";
-  }
-
-  return response.status >= 500
-    ? "La API ha restituito una pagina di errore HTML."
-    : response.statusText || "Errore nella richiesta";
 }
 
 function safeJson(s: string) {
