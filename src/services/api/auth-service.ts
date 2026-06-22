@@ -19,8 +19,20 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
 export function registerUser(data: RegisterRequest) {
   return http<RegisterResponse>("/api/v1/auth/register", {
+    method: "POST",
+    auth: false,
+    body: JSON.stringify(data),
+  });
+}
+
+export function logoutUser(data: RefreshTokenRequest) {
+  return http<void>("/api/v1/auth/logout", {
     method: "POST",
     auth: false,
     body: JSON.stringify(data),

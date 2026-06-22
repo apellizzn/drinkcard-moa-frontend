@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { canUseBarScanner, isAdmin, sessionStore } from "@/lib/session";
 import { useSession } from "@/hooks/use-session";
+import { logoutUser } from "@/services/api/auth-service";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n-react";
 
