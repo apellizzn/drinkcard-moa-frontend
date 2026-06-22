@@ -1,6 +1,6 @@
 import { env } from "@/config/env";
-import { sessionStore } from "@/lib/session";
 import { translateNow } from "@/lib/i18n";
+import { normalizeSession, SESSION_STORAGE_KEY, sessionStore, type Session } from "@/lib/session";
 
 export class ApiError extends Error {
   constructor(
@@ -66,15 +66,69 @@ async function request(
   const text = await res.text();
   const data = text ? safeJson(text) : undefined;
 
-  if (!res.ok) {
-    const record = data && typeof data === "object" ? (data as Record<string, unknown>) : undefined;
-    const msg =
-      (record && "message" in record && record.message) ||
-      (record && "error" in record && record.error) ||
-      (typeof data === "string" && data.trim()) ||
-      res.statusText ||
-      translateNow("errors.request");
-    throw new ApiError(res.status, String(msg), data);
+  return { response: res, data };
+}
+
+async function refreshSession(): Promise<Session | null> {
+  if (!refreshPromise) {
+    refreshPromise = refreshSessionWithLock().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+async function refreshSessionWithLock(): Promise<Session | null> {
+  const session = sessionStore.get();
+  if (!session?.refreshToken) {
+    sessionStore.clear();
+    return null;
+  }
+
+  if (typeof window === "undefined") {
+    return refreshCurrentSession(session);
+  }
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (tryAcquireRefreshLock()) {
+      try {
+        return await refreshCurrentSession(sessionStore.get() ?? session);
+      } finally {
+        releaseRefreshLock();
+      }
+    }
+
+    const updatedSession = await waitForOtherTabRefresh(session.refreshToken);
+    if (updatedSession) return updatedSession;
+    const currentSession = sessionStore.get();
+    if (currentSession?.refreshToken && currentSession.refreshToken !== session.refreshToken) {
+      return currentSession;
+    }
+    if (!sessionStore.get()) return null;
+  }
+
+  sessionStore.clear();
+  return null;
+}
+
+async function refreshCurrentSession(session: Session): Promise<Session | null> {
+  if (!session.refreshToken) {
+    sessionStore.clear();
+    return null;
+  }
+
+  const result = await request(
+    REFRESH_PATH,
+    {
+      method: "POST",
+      body: JSON.stringify({ refreshToken: session.refreshToken }),
+    },
+    undefined,
+  );
+
+  if (!result.response.ok) {
+    sessionStore.clear();
+    throw apiErrorFromResponse(result.response, result.data);
   }
 
   const data = result.data as Partial<Session>;
@@ -168,7 +222,7 @@ function apiErrorFromResponse(response: Response, data: unknown) {
     (data && typeof data === "object" && "error" in data && (data as { error?: unknown }).error) ||
     (typeof data === "string" && data.trim()) ||
     response.statusText ||
-    "Error en la petición";
+    translateNow("errors.request");
   return new ApiError(response.status, String(msg), data);
 }
 
