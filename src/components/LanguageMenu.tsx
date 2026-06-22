@@ -1,4 +1,4 @@
-import { Check, Languages } from "lucide-react";
+import { Check, Globe2 } from "lucide-react";
 import { LANGUAGES } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
 import {
@@ -26,7 +26,7 @@ export function LanguageMenu({ className }: { className?: string }) {
             "inline-flex h-10 items-center gap-1.5 rounded-xl border-2 border-foreground/10 bg-card px-3 font-display text-sm hover:bg-muted transition-colors"
           }
         >
-          <Languages className="h-4 w-4" />
+          <Globe2 className="h-4 w-4" />
           <span>{current.shortLabel}</span>
         </button>
       </DropdownMenuTrigger>
