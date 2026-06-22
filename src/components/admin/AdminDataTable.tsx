@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { translateStatus } from "@/lib/i18n";
+import { useLanguage } from "@/lib/i18n-react";
 
 interface AdminDataTableProps {
   title?: string;
@@ -9,7 +11,13 @@ interface AdminDataTableProps {
   className?: string;
 }
 
-export function AdminDataTable({ title, description, children, actions, className }: AdminDataTableProps) {
+export function AdminDataTable({
+  title,
+  description,
+  children,
+  actions,
+  className,
+}: AdminDataTableProps) {
   return (
     <section className={cn("admin-panel overflow-hidden", className)}>
       {(title || description || actions) && (
@@ -41,6 +49,7 @@ export function AdminEmptyRow({ colSpan, children }: { colSpan: number; children
 }
 
 export function AdminStatusBadge({ status }: { status: string }) {
+  const { language } = useLanguage();
   const normalized = status.toUpperCase();
   const classes: Record<string, string> = {
     ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -55,8 +64,13 @@ export function AdminStatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-xs font-medium", classes[normalized] ?? "border-slate-200 bg-slate-100 text-slate-600")}>
-      {status}
+    <span
+      className={cn(
+        "inline-flex rounded-full border px-2.5 py-1 text-xs font-medium",
+        classes[normalized] ?? "border-slate-200 bg-slate-100 text-slate-600",
+      )}
+    >
+      {translateStatus(language, status)}
     </span>
   );
 }

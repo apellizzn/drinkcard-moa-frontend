@@ -1,8 +1,13 @@
 import { env } from "@/config/env";
 import { sessionStore } from "@/lib/session";
+import { translateNow } from "@/lib/i18n";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public body?: unknown) {
+  constructor(
+    public status: number,
+    message: string,
+    public body?: unknown,
+  ) {
     super(message);
   }
 }
@@ -24,19 +29,20 @@ export async function http<T = unknown>(
   try {
     res = await fetch(`${env.apiBaseUrl}${path}`, { ...rest, headers: h });
   } catch (e) {
-    throw new ApiError(0, "No se puede conectar con el servidor", e);
+    throw new ApiError(0, translateNow("errors.network"), e);
   }
 
   const text = await res.text();
   const data = text ? safeJson(text) : undefined;
 
   if (!res.ok) {
+    const record = data && typeof data === "object" ? (data as Record<string, unknown>) : undefined;
     const msg =
-      (data && typeof data === "object" && "message" in (data as any) && (data as any).message) ||
-      (data && typeof data === "object" && "error" in (data as any) && (data as any).error) ||
+      (record && "message" in record && record.message) ||
+      (record && "error" in record && record.error) ||
       (typeof data === "string" && data.trim()) ||
       res.statusText ||
-      "Error en la petición";
+      translateNow("errors.request");
     throw new ApiError(res.status, String(msg), data);
   }
 
