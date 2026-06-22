@@ -3,15 +3,26 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 import { Sticker } from "@/components/Sticker";
 import { useSession } from "@/hooks/use-session";
-import { AlertCircle, ArrowRight, Beer, CreditCard, ExternalLink, History, Loader2, RefreshCw, ScanLine } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  Beer,
+  CreditCard,
+  ExternalLink,
+  History,
+  Loader2,
+  RefreshCw,
+  ScanLine,
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { getCurrentDrinkCardAccount } from "@/services/api/drink-card-service";
 import { createPaymentCheckout } from "@/services/api/payment-service";
 import { storePendingPayment } from "@/services/payments/pending-payment-storage";
 import { canUseBarScanner } from "@/lib/session";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/i18n/i18n";
+import { dateLocales, statusKey } from "@/i18n/format";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: AppIndexPage,
@@ -22,6 +33,7 @@ function AppIndexPage() {
   const session = useSession();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { language, t } = useI18n();
 
   const account = useQuery({
     queryKey: ["account", "me"],
@@ -31,21 +43,24 @@ function AppIndexPage() {
   const checkout = useMutation({
     mutationFn: () => {
       const volunteerId = session?.volunteerId ?? session?.userId;
-      if (!volunteerId) throw new ApiError(400, "Sesión incompleta: falta el identificador del voluntario");
+      if (!volunteerId) throw new ApiError(400, t("errors.incompleteVolunteerSession"));
       return createPaymentCheckout(volunteerId);
     },
     onSuccess: (res) => {
       try {
         storePendingPayment(res.paymentId);
-      } catch {}
+      } catch {
+        // Best effort: checkout can continue even if local storage is unavailable.
+      }
       if (res.checkoutUrl) {
         window.location.href = res.checkoutUrl;
       } else {
-        toast.success("Pago creado");
+        toast.success(t("toast.paymentCreated"));
         qc.invalidateQueries({ queryKey: ["account", "me"] });
       }
     },
-    onError: (e: unknown) => toast.error(e instanceof ApiError ? e.message : "No se pudo crear el pago"),
+    onError: (e: unknown) =>
+      toast.error(e instanceof ApiError ? e.message : t("errors.paymentCreate")),
   });
 
   const credits = account.data?.credits ?? 0;
@@ -55,14 +70,14 @@ function AppIndexPage() {
   const primaryAction = account.isError ? "retry" : canRequestDrink ? "drink" : "checkout";
   const primaryDisabled = account.isLoading || checkout.isPending;
   const primaryLabel = account.isLoading
-    ? "Cargando tarjeta..."
+    ? t("app.loadingCard")
     : checkout.isPending
-      ? "Creando pago..."
+      ? t("app.creatingPayment")
       : primaryAction === "retry"
-        ? "Reintentar"
+        ? t("common.retry")
         : primaryAction === "drink"
-          ? "Pedir una bebida"
-          : "Comprar créditos";
+          ? t("app.requestDrink")
+          : t("app.buyCredits");
 
   const handlePrimaryAction = () => {
     if (primaryAction === "retry") {
@@ -79,28 +94,46 @@ function AppIndexPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
       <div className="mb-6">
-        <Sticker color="cyan" rotate={-4}>Mi tarjeta</Sticker>
-        <h1 className="mt-3 font-display text-5xl">Hola, {session?.firstName ?? "voluntari@"} 👋</h1>
-        <p className="text-muted-foreground mt-1">Tu tarjeta digital del festival.</p>
+        <Sticker color="cyan" rotate={-4}>
+          {t("app.cardTitle")}
+        </Sticker>
+        <h1 className="mt-3 font-display text-5xl">
+          {t("app.greeting", { name: session?.firstName ?? t("app.fallbackName") })}
+        </h1>
+        <p className="text-muted-foreground mt-1">{t("app.cardSubtitle")}</p>
       </div>
 
       <div className="relative overflow-hidden rounded-3xl border-2 bg-gradient-to-br from-primary via-neon-violet to-accent p-5 sticker-lg glow-pink sm:p-6">
         <div className="grid gap-4 text-primary-foreground sm:grid-cols-[auto_1fr] sm:items-end">
           <div>
-            <div className="text-xs uppercase tracking-widest opacity-75">Créditos</div>
+            <div className="text-xs uppercase tracking-widest opacity-75">
+              {t("common.credits")}
+            </div>
             <div className="font-display text-6xl leading-none sm:text-7xl">
-              {account.isLoading ? <Skeleton className="h-16 w-24 rounded-2xl bg-white/25" /> : credits}
+              {account.isLoading ? (
+                <Skeleton className="h-16 w-24 rounded-2xl bg-white/25" />
+              ) : (
+                credits
+              )}
             </div>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="rounded-2xl bg-black/20 px-4 py-3 backdrop-blur-sm">
-              <div className="text-[10px] uppercase tracking-widest opacity-70">Estado</div>
-              <div className="mt-1 font-display text-base">{account.isLoading ? "Cargando" : status}</div>
+              <div className="text-[10px] uppercase tracking-widest opacity-70">
+                {t("common.status")}
+              </div>
+              <div className="mt-1 font-display text-base">
+                {account.isLoading ? t("common.loading") : t(statusKey(status))}
+              </div>
             </div>
             <div className="rounded-2xl bg-black/20 px-4 py-3 text-left backdrop-blur-sm sm:text-right">
-              <div className="text-[10px] uppercase tracking-widest opacity-70">Última compra</div>
+              <div className="text-[10px] uppercase tracking-widest opacity-70">
+                {t("app.lastPurchase")}
+              </div>
               <div className="mt-1 font-display text-base">
-                {last ? format(new Date(last), "d MMM, HH:mm", { locale: es }) : "—"}
+                {last
+                  ? format(new Date(last), "d MMM, HH:mm", { locale: dateLocales[language] })
+                  : "—"}
               </div>
             </div>
           </div>
@@ -111,9 +144,9 @@ function AppIndexPage() {
         <div className="mt-4 flex items-start gap-3 rounded-2xl border-2 border-destructive bg-destructive/10 p-4 text-sm">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
           <div>
-            <p className="font-medium text-destructive">No se pudo cargar tu tarjeta.</p>
+            <p className="font-medium text-destructive">{t("errors.cardLoadTitle")}</p>
             <p className="mt-1 text-muted-foreground">
-              {account.error instanceof ApiError ? account.error.message : "Error cargando tu tarjeta"}
+              {account.error instanceof ApiError ? account.error.message : t("errors.cardLoad")}
             </p>
           </div>
         </div>
@@ -145,18 +178,24 @@ function AppIndexPage() {
               )}
               <h2 className="font-display text-3xl">{primaryLabel}</h2>
             </div>
-            <p className={`mt-2 text-sm ${primaryAction === "retry" ? "text-muted-foreground" : "opacity-85"}`}>
+            <p
+              className={`mt-2 text-sm ${primaryAction === "retry" ? "text-muted-foreground" : "opacity-85"}`}
+            >
               {account.isLoading
-                ? "Estamos leyendo tu saldo."
+                ? t("app.readingBalance")
                 : primaryAction === "retry"
-                  ? "Vuelve a intentar cargar el saldo antes de operar."
+                  ? t("app.retryBalance")
                   : canRequestDrink
-                    ? "Tienes saldo para generar un QR de un solo uso."
-                    : "10€ = 5 bebidas. Pago seguro con SumUp."}
+                    ? t("app.hasCredit")
+                    : t("app.paymentHint")}
             </p>
           </div>
-          {!primaryDisabled && primaryAction === "drink" && <ArrowRight className="h-5 w-5 shrink-0 opacity-80" />}
-          {!primaryDisabled && primaryAction === "checkout" && <ExternalLink className="h-5 w-5 shrink-0 opacity-80" />}
+          {!primaryDisabled && primaryAction === "drink" && (
+            <ArrowRight className="h-5 w-5 shrink-0 opacity-80" />
+          )}
+          {!primaryDisabled && primaryAction === "checkout" && (
+            <ExternalLink className="h-5 w-5 shrink-0 opacity-80" />
+          )}
         </button>
 
         {canRequestDrink && (
@@ -167,7 +206,7 @@ function AppIndexPage() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 bg-card px-5 py-3 font-display text-sm transition-colors hover:bg-muted disabled:opacity-60"
           >
             <CreditCard className="h-4 w-4" />
-            Añadir más créditos
+            {t("app.addCredits")}
           </button>
         )}
 
@@ -176,7 +215,7 @@ function AppIndexPage() {
           className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 bg-card px-5 py-3 font-display text-sm transition-colors hover:bg-muted"
         >
           <History className="h-4 w-4" />
-          Ver historial
+          {t("app.viewHistory")}
         </Link>
 
         {canUseBarScanner(session?.role) && (
@@ -185,7 +224,7 @@ function AppIndexPage() {
             className="group flex items-center justify-center gap-2 rounded-2xl border-2 bg-accent/10 px-5 py-3 font-display text-sm text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <ScanLine className="h-4 w-4" />
-            Abrir escáner de barra
+            {t("app.openScanner")}
           </Link>
         )}
       </div>
