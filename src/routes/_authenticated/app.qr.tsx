@@ -7,8 +7,8 @@ import { ArrowLeft, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { getDrinkTicketStatus, type Ticket } from "@/services/api/ticket-service";
 import { clearStoredTicket, getStoredTicket } from "@/services/tickets/ticket-storage";
 import { createTicketQrPayload } from "@/services/qr/ticket-qr";
-
-const LABELS: Record<string, string> = { BEER: "Cerveza", WINE: "Vino", WATER: "Agua", SOFT_DRINK: "Refresco" };
+import { useI18n } from "@/i18n/i18n";
+import { drinkKey } from "@/i18n/format";
 
 export const Route = createFileRoute("/_authenticated/app/qr")({
   component: QrPage,
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/app/qr")({
 
 function QrPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [ticket, setTicket] = useState<Ticket | null>(null);
 
   useEffect(() => {
@@ -31,7 +32,10 @@ function QrPage() {
   });
 
   const current = status.data ?? ticket;
-  const expiresAt = useMemo(() => (current?.expiresAt ? new Date(current.expiresAt).getTime() : Date.now() + 90_000), [current?.expiresAt]);
+  const expiresAt = useMemo(
+    () => (current?.expiresAt ? new Date(current.expiresAt).getTime() : Date.now() + 90_000),
+    [current?.expiresAt],
+  );
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 250);
@@ -42,10 +46,13 @@ function QrPage() {
   if (!ticket) {
     return (
       <main className="mx-auto max-w-md px-4 py-12 text-center">
-        <h1 className="font-display text-4xl">Sin ticket activo</h1>
-        <p className="text-muted-foreground mt-2">Elige una bebida para generar tu QR.</p>
-        <button onClick={() => navigate({ to: "/app/drinks" })} className="mt-6 rounded-2xl bg-primary px-5 py-3 font-display text-primary-foreground sticker">
-          Elegir bebida
+        <h1 className="font-display text-4xl">{t("app.qrNoTicketTitle")}</h1>
+        <p className="text-muted-foreground mt-2">{t("app.qrNoTicketBody")}</p>
+        <button
+          onClick={() => navigate({ to: "/app/drinks" })}
+          className="mt-6 rounded-2xl bg-primary px-5 py-3 font-display text-primary-foreground sticker"
+        >
+          {t("app.qrChooseDrink")}
         </button>
       </main>
     );
@@ -59,19 +66,35 @@ function QrPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-8">
-      <Link to="/app" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Volver
+      <Link
+        to="/app"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" /> {t("common.back")}
       </Link>
 
       <div className="mt-4 text-center">
-        <Sticker color="yellow" rotate={-6}>Ticket único</Sticker>
-        <h1 className="mt-3 font-display text-4xl">{LABELS[ticket.drinkType] ?? ticket.drinkType}</h1>
+        <Sticker color="yellow" rotate={-6}>
+          {t("app.qrTicket")}
+        </Sticker>
+        <h1 className="mt-3 font-display text-4xl">{t(drinkKey(ticket.drinkType))}</h1>
       </div>
 
-      <div className={`relative mt-6 rounded-3xl border-2 bg-white p-6 sticker-lg transition-opacity ${isActive ? "" : "opacity-40 grayscale"}`}>
-        <Sticker color="pink" rotate={-8} className="absolute -top-3 -left-3">1 crédito</Sticker>
+      <div
+        className={`relative mt-6 rounded-3xl border-2 bg-white p-6 sticker-lg transition-opacity ${isActive ? "" : "opacity-40 grayscale"}`}
+      >
+        <Sticker color="pink" rotate={-8} className="absolute -top-3 -left-3">
+          {t("app.qrCredit")}
+        </Sticker>
         <div className="grid place-items-center">
-          <QRCodeSVG value={qrValue} size={256} bgColor="#ffffff" fgColor="#0a0613" level="Q" includeMargin />
+          <QRCodeSVG
+            value={qrValue}
+            size={256}
+            bgColor="#ffffff"
+            fgColor="#0a0613"
+            level="Q"
+            includeMargin
+          />
         </div>
       </div>
 
@@ -82,23 +105,25 @@ function QrPage() {
               <Clock className="h-6 w-6" />
               <span className="font-display text-4xl leading-none">{remaining}s</span>
             </div>
-            <p className="mt-2 text-xs font-medium opacity-80">Muéstralo en barra antes de que caduque</p>
+            <p className="mt-2 text-xs font-medium opacity-80">{t("app.qrShowBeforeExpires")}</p>
           </div>
         )}
         {isConsumed && (
           <div className="rounded-2xl border-2 border-success bg-success/15 p-4">
             <div className="flex items-center justify-center gap-2 text-success">
-              <CheckCircle2 className="h-6 w-6" /><span className="font-display text-2xl">¡Canjeado!</span>
+              <CheckCircle2 className="h-6 w-6" />
+              <span className="font-display text-2xl">{t("app.qrConsumed")}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Disfruta tu bebida 🍻</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("app.qrEnjoy")}</p>
           </div>
         )}
         {isExpired && !isConsumed && (
           <div className="rounded-2xl border-2 border-destructive bg-destructive/15 p-4">
             <div className="flex items-center justify-center gap-2 text-destructive">
-              <XCircle className="h-6 w-6" /><span className="font-display text-2xl">Caducado</span>
+              <XCircle className="h-6 w-6" />
+              <span className="font-display text-2xl">{t("app.qrExpired")}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Genera un nuevo QR</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("app.qrGenerateNew")}</p>
           </div>
         )}
       </div>
@@ -115,7 +140,7 @@ function QrPage() {
           }}
           className="mt-6 w-full rounded-2xl bg-primary py-3 font-display text-lg text-primary-foreground sticker-lg"
         >
-          Pedir otra bebida
+          {t("app.qrOrderAnother")}
         </button>
       )}
     </main>

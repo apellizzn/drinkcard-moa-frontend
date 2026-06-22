@@ -6,8 +6,9 @@ import { Sticker } from "@/components/Sticker";
 import { Camera, CheckCircle2, XCircle, Type } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
 import { readTicketIdFromQrPayload } from "@/services/qr/ticket-qr";
-
-const LABELS: Record<string, string> = { BEER: "Cerveza", WINE: "Vino", WATER: "Agua", SOFT_DRINK: "Refresco" };
+import { useI18n } from "@/i18n/i18n";
+import { drinkKey } from "@/i18n/format";
+import type { Html5Qrcode } from "html5-qrcode";
 
 export const Route = createFileRoute("/_authenticated/bar/scanner")({
   component: ScannerPage,
@@ -16,12 +17,17 @@ export const Route = createFileRoute("/_authenticated/bar/scanner")({
 
 function ScannerPage() {
   const session = useSession();
+  const { t } = useI18n();
   const [mode, setMode] = useState<"camera" | "manual">("camera");
   const [manualValue, setManualValue] = useState("");
-  const [last, setLast] = useState<{ ok: boolean; data?: ConsumeTicketResponse; msg?: string } | null>(null);
+  const [last, setLast] = useState<{
+    ok: boolean;
+    data?: ConsumeTicketResponse;
+    msg?: string;
+  } | null>(null);
   const [scanning, setScanning] = useState(false);
   const elRef = useRef<HTMLDivElement>(null);
-  const scannerRef = useRef<any>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const lockRef = useRef<string | null>(null);
 
   const consume = async (ticketId: string) => {
@@ -29,13 +35,15 @@ function ScannerPage() {
     lockRef.current = ticketId;
     try {
       const consumedByStaffId = session?.volunteerId ?? session?.userId;
-      if (!consumedByStaffId) throw new ApiError(400, "Sesión incompleta: falta el identificador del usuario");
+      if (!consumedByStaffId) throw new ApiError(400, t("errors.incompleteUserSession"));
       const res = await consumeDrinkTicket(ticketId, consumedByStaffId);
       setLast({ ok: true, data: res });
     } catch (e) {
-      setLast({ ok: false, msg: e instanceof ApiError ? e.message : "Ticket no válido" });
+      setLast({ ok: false, msg: e instanceof ApiError ? e.message : t("errors.invalidTicket") });
     } finally {
-      setTimeout(() => { lockRef.current = null; }, 2500);
+      setTimeout(() => {
+        lockRef.current = null;
+      }, 2500);
     }
   };
 
@@ -51,7 +59,14 @@ function ScannerPage() {
       try {
         await scanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: (w: number, h: number) => { const s = Math.floor(Math.min(w, h) * 0.7); return { width: s, height: s }; }, aspectRatio: 1 },
+          {
+            fps: 10,
+            qrbox: (w: number, h: number) => {
+              const s = Math.floor(Math.min(w, h) * 0.7);
+              return { width: s, height: s };
+            },
+            aspectRatio: 1,
+          },
           (decoded) => {
             const ticketId = readTicketIdFromQrPayload(decoded);
             if (ticketId) consume(ticketId);
@@ -67,29 +82,46 @@ function ScannerPage() {
       stopped = true;
       setScanning(false);
       const s = scannerRef.current;
-      if (s && s.isScanning) s.stop().then(() => s.clear()).catch(() => {});
+      if (s && s.isScanning)
+        s.stop()
+          .then(() => s.clear())
+          .catch(() => {
+            // Camera cleanup is best effort when the browser already stopped the stream.
+          });
     };
   }, [mode]);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <Sticker color="cyan" rotate={-4}>Modo barra</Sticker>
-      <h1 className="mt-3 font-display text-5xl">Escáner QR</h1>
-      <p className="text-muted-foreground mt-1">Escanea el QR del voluntario para servir su bebida.</p>
+      <Sticker color="cyan" rotate={-4}>
+        {t("scanner.mode")}
+      </Sticker>
+      <h1 className="mt-3 font-display text-5xl">{t("scanner.title")}</h1>
+      <p className="text-muted-foreground mt-1">{t("scanner.subtitle")}</p>
 
       <div className="mt-6 inline-flex rounded-xl border-2 p-1 bg-card">
-        <button onClick={() => setMode("camera")} className={`px-4 py-2 rounded-lg font-display text-sm ${mode === "camera" ? "bg-primary text-primary-foreground" : ""}`}>
-          <Camera className="inline h-4 w-4 mr-1" /> Cámara
+        <button
+          onClick={() => setMode("camera")}
+          className={`px-4 py-2 rounded-lg font-display text-sm ${mode === "camera" ? "bg-primary text-primary-foreground" : ""}`}
+        >
+          <Camera className="inline h-4 w-4 mr-1" /> {t("scanner.camera")}
         </button>
-        <button onClick={() => setMode("manual")} className={`px-4 py-2 rounded-lg font-display text-sm ${mode === "manual" ? "bg-primary text-primary-foreground" : ""}`}>
-          <Type className="inline h-4 w-4 mr-1" /> Manual
+        <button
+          onClick={() => setMode("manual")}
+          className={`px-4 py-2 rounded-lg font-display text-sm ${mode === "manual" ? "bg-primary text-primary-foreground" : ""}`}
+        >
+          <Type className="inline h-4 w-4 mr-1" /> {t("scanner.manual")}
         </button>
       </div>
 
       {mode === "camera" ? (
         <div className="mt-6 relative rounded-3xl border-2 bg-black overflow-hidden w-full max-w-md aspect-square mx-auto qr-square">
           <div ref={elRef} className="absolute inset-0 w-full h-full" />
-          {!scanning && <div className="absolute inset-0 grid place-items-center text-white/70 text-sm">Activando cámara...</div>}
+          {!scanning && (
+            <div className="absolute inset-0 grid place-items-center text-white/70 text-sm">
+              {t("scanner.activatingCamera")}
+            </div>
+          )}
           {/* square guide overlay */}
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="h-2/3 w-2/3 rounded-2xl border-4 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
@@ -97,10 +129,12 @@ function ScannerPage() {
         </div>
       ) : (
         <div className="mt-6 rounded-3xl border-2 bg-card p-6">
-          <label className="block text-sm font-medium mb-2">ID del ticket o payload del QR</label>
+          <label className="block text-sm font-medium mb-2">{t("scanner.manualLabel")}</label>
           <textarea
-            rows={3} value={manualValue} onChange={(e) => setManualValue(e.target.value)}
-            placeholder='Pega aquí, por ejemplo: {"ticketId":"..."}'
+            rows={3}
+            value={manualValue}
+            onChange={(e) => setManualValue(e.target.value)}
+            placeholder={t("scanner.manualPlaceholder")}
             className="input font-mono text-sm"
           />
           <button
@@ -112,27 +146,34 @@ function ScannerPage() {
             }}
             className="mt-3 w-full rounded-2xl bg-primary py-3 font-display text-lg text-primary-foreground sticker-lg"
           >
-            Consumir
+            {t("scanner.consume")}
           </button>
         </div>
       )}
 
       {last && (
-        <div role="status" aria-live="polite" className={`mt-6 rounded-3xl border-2 p-6 sticker-lg ${last.ok ? "bg-success/15 border-success" : "bg-destructive/15 border-destructive"}`}>
+        <div
+          role="status"
+          aria-live="polite"
+          className={`mt-6 rounded-3xl border-2 p-6 sticker-lg ${last.ok ? "bg-success/15 border-success" : "bg-destructive/15 border-destructive"}`}
+        >
           {last.ok ? (
             <>
               <div className="flex items-center gap-2 text-success">
                 <CheckCircle2 className="h-8 w-8" />
-                <span className="font-display text-3xl">APROBADO</span>
+                <span className="font-display text-3xl">{t("scanner.approved")}</span>
               </div>
-              <div className="mt-3 font-display text-4xl">{LABELS[last.data!.drinkType] ?? last.data!.drinkType}</div>
-              <div className="text-sm text-muted-foreground mt-1">Créditos restantes: <b className="text-foreground">{last.data!.remainingCredits}</b></div>
+              <div className="mt-3 font-display text-4xl">{t(drinkKey(last.data!.drinkType))}</div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {t("scanner.remainingCredits")}{" "}
+                <b className="text-foreground">{last.data!.remainingCredits}</b>
+              </div>
             </>
           ) : (
             <>
               <div className="flex items-center gap-2 text-destructive">
                 <XCircle className="h-8 w-8" />
-                <span className="font-display text-3xl">RECHAZADO</span>
+                <span className="font-display text-3xl">{t("scanner.rejected")}</span>
               </div>
               <div className="text-sm mt-2">{last.msg}</div>
             </>
