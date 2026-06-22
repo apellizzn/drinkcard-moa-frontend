@@ -7,8 +7,11 @@
   // Backend the Worker proxies /api/* requests to (server-side, same-origin
   // from the browser's perspective). Override per environment with:
   //   bunx wrangler deploy --var API_UPSTREAM_URL:https://api.example.com
+  // If the upstream is behind Cloudflare and is reached through an IP/CDN
+  // endpoint, also set API_UPSTREAM_HOST to the expected hostname.
   // Or define [env.<name>.vars] blocks below for staging/production.
   "vars": {
-    "API_UPSTREAM_URL": "http://localhost:8080"
-  }
+    "API_UPSTREAM_URL": "http://localhost:8080",
+    // "API_UPSTREAM_HOST": "api.example.com"
+  },
 }
