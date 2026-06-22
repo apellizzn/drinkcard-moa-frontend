@@ -9,6 +9,7 @@ type ServerEntry = {
 
 interface WorkerEnv {
   API_UPSTREAM_URL?: string;
+  API_UPSTREAM_HOST?: string;
 }
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
@@ -16,7 +17,7 @@ let serverEntryPromise: Promise<ServerEntry> | undefined;
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
     serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => ((m as { default?: ServerEntry }).default ?? (m as unknown as ServerEntry)),
+      (m) => (m as { default?: ServerEntry }).default ?? (m as unknown as ServerEntry),
     );
   }
   return serverEntryPromise;
@@ -58,18 +59,23 @@ function stripHopByHopHeaders(headers: Headers): Headers {
 async function proxyApiRequest(request: Request, env: WorkerEnv): Promise<Response> {
   const upstream = env.API_UPSTREAM_URL?.trim().replace(/\/$/, "");
   if (!upstream) {
-    return new Response(
-      JSON.stringify({ message: "API_UPSTREAM_URL is not configured" }),
-      { status: 500, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ message: "API_UPSTREAM_URL is not configured" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   const incomingUrl = new URL(request.url);
   const targetUrl = `${upstream}${incomingUrl.pathname}${incomingUrl.search}`;
+  const headers = stripHopByHopHeaders(request.headers);
+  const upstreamHost = env.API_UPSTREAM_HOST?.trim();
+  if (upstreamHost) {
+    headers.set("host", upstreamHost);
+  }
 
   const init: RequestInit = {
     method: request.method,
-    headers: stripHopByHopHeaders(request.headers),
+    headers,
     redirect: "manual",
   };
   if (request.method !== "GET" && request.method !== "HEAD") {
@@ -87,10 +93,10 @@ async function proxyApiRequest(request: Request, env: WorkerEnv): Promise<Respon
     });
   } catch (error) {
     console.error("API proxy error:", error);
-    return new Response(
-      JSON.stringify({ message: "Upstream API unreachable" }),
-      { status: 502, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ message: "Upstream API unreachable" }), {
+      status: 502,
+      headers: { "content-type": "application/json" },
+    });
   }
 }
 

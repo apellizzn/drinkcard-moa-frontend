@@ -174,12 +174,15 @@ The frontend reads Vite variables from `.env`.
 ```env
 # Used by vite.config.ts for the local /api dev proxy and ngrok host checks.
 VITE_API_PROXY_TARGET=http://localhost:8080
+# Optional when the target is an IP/CDN endpoint that requires a specific Host header.
+# VITE_API_PROXY_HOST=api.example.com
 VITE_ALLOWED_HOSTS=uncharted-apply-upstart.ngrok-free.dev
 ```
 
 | Variable | Purpose |
 | --- | --- |
 | `VITE_API_PROXY_TARGET` | Backend target used by the Vite dev proxy. Default: `http://localhost:8080`. The production equivalent is `API_UPSTREAM_URL` in `wrangler.jsonc`. |
+| `VITE_API_PROXY_HOST` | Optional Host header override for the Vite dev proxy. Useful when Cloudflare/ngrok rejects direct IP or CDN-host requests. |
 | `VITE_ALLOWED_HOSTS` | Comma-separated list of extra hosts accepted by Vite, useful for ngrok. |
 
 The browser bundle always issues same-origin requests under `/api/*`. Both
@@ -281,6 +284,10 @@ bunx wrangler deploy \
   --var API_UPSTREAM_URL:https://api.example.com
 ```
 
+If the upstream URL points to an IP/CDN endpoint that still expects the public
+hostname, also pass `--var API_UPSTREAM_HOST:api.example.com`. This avoids
+Cloudflare `1003 Direct IP access not allowed` responses.
+
 Or define environment-specific blocks (`[env.staging.vars]`,
 `[env.production.vars]`) in `wrangler.jsonc` and deploy with
 `wrangler deploy --env production`.
@@ -296,8 +303,9 @@ For variables read by the SSR Worker at runtime, add them under `vars` in
 {
   "name": "drinkcard-moa-frontend",
   "vars": {
-    "API_UPSTREAM_URL": "https://api.example.com"
-  }
+    "API_UPSTREAM_URL": "https://api.example.com",
+    "API_UPSTREAM_HOST": "api.example.com",
+  },
 }
 ```
 
