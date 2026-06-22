@@ -3,14 +3,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ApiError } from "@/lib/api";
 import { getPaymentStatus, type PaymentStatusResponse } from "@/services/api/payment-service";
-import {
-  clearPendingPayment,
-  getPendingPayment,
-} from "@/services/payments/pending-payment-storage";
+import { clearPendingPayment, getPendingPayment } from "@/services/payments/pending-payment-storage";
 import { Sticker } from "@/components/Sticker";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { useI18n } from "@/i18n/i18n";
-import { statusKey } from "@/i18n/format";
 
 export const Route = createFileRoute("/_authenticated/payment/success")({
   component: PaymentSuccess,
@@ -31,7 +26,6 @@ const MAX_POLL_ATTEMPTS = 30;
 function PaymentSuccess() {
   const [state, setState] = useState<State>({ kind: "loading", attempt: 1 });
   const queryClient = useQueryClient();
-  const { t } = useI18n();
 
   useEffect(() => {
     let cancelled = false;
@@ -58,71 +52,49 @@ function PaymentSuccess() {
         setState({ kind: "pending", status: res.status });
       } catch (e) {
         if (cancelled) return;
-        setState({
-          kind: "error",
-          msg: e instanceof ApiError ? e.message : t("payment.verifyError"),
-        });
+        setState({ kind: "error", msg: e instanceof ApiError ? e.message : "Error verificando el pago" });
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [queryClient, t]);
+  }, [queryClient]);
 
   return (
     <main className="mx-auto max-w-md px-4 py-12 text-center">
       <div className="rounded-3xl border-2 bg-card p-8 sticker-lg relative">
-        <Sticker color="yellow" rotate={-8} className="absolute -top-3 -right-3">
-          {t("payment.sticker")}
-        </Sticker>
-        {state.kind === "loading" && (
-          <>
-            <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
-            <h1 className="mt-4 font-display text-3xl">{t("payment.verifying")}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t("payment.waiting", { attempt: state.attempt, max: MAX_POLL_ATTEMPTS })}
-            </p>
-          </>
-        )}
-        {state.kind === "ok" && (
-          <>
-            <CheckCircle2 className="h-14 w-14 mx-auto text-success" />
-            <h1 className="mt-3 font-display text-4xl">{t("payment.done")}</h1>
-            <p className="text-muted-foreground mt-1">{t("payment.creditsAdded")}</p>
-            {state.amount != null && (
-              <p className="mt-3 font-display text-2xl text-primary">{state.amount.toFixed(2)} €</p>
-            )}
-          </>
-        )}
-        {state.kind === "pending" && (
-          <>
-            <AlertCircle className="h-14 w-14 mx-auto text-warning" />
-            <h1 className="mt-3 font-display text-3xl">
-              {t("payment.pendingTitle", { status: t(statusKey(state.status)) })}
-            </h1>
-            <p className="text-muted-foreground mt-1">{t("payment.pendingBody")}</p>
-          </>
-        )}
-        {state.kind === "none" && (
-          <>
-            <AlertCircle className="h-14 w-14 mx-auto text-warning" />
-            <h1 className="mt-3 font-display text-3xl">{t("payment.noneTitle")}</h1>
-            <p className="text-muted-foreground mt-1">{t("payment.noneBody")}</p>
-          </>
-        )}
-        {state.kind === "error" && (
-          <>
-            <AlertCircle className="h-14 w-14 mx-auto text-destructive" />
-            <h1 className="mt-3 font-display text-3xl">{t("payment.errorTitle")}</h1>
-            <p className="text-muted-foreground mt-1">{state.msg}</p>
-          </>
-        )}
-        <Link
-          to="/app"
-          className="mt-6 inline-block rounded-2xl bg-primary px-5 py-3 font-display text-primary-foreground sticker"
-        >
-          {t("app.historyBack")}
+        <Sticker color="yellow" rotate={-8} className="absolute -top-3 -right-3">Pago</Sticker>
+        {state.kind === "loading" && (<>
+          <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
+          <h1 className="mt-4 font-display text-3xl">Verificando pago...</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Esperando confirmación de SumUp. Intento {state.attempt}/{MAX_POLL_ATTEMPTS}.
+          </p>
+        </>)}
+        {state.kind === "ok" && (<>
+          <CheckCircle2 className="h-14 w-14 mx-auto text-success" />
+          <h1 className="mt-3 font-display text-4xl">¡Listo!</h1>
+          <p className="text-muted-foreground mt-1">Hemos añadido 5 créditos a tu tarjeta.</p>
+          {state.amount != null && <p className="mt-3 font-display text-2xl text-primary">{state.amount.toFixed(2)} €</p>}
+        </>)}
+        {state.kind === "pending" && (<>
+          <AlertCircle className="h-14 w-14 mx-auto text-warning" />
+          <h1 className="mt-3 font-display text-3xl">Pago {state.status}</h1>
+          <p className="text-muted-foreground mt-1">Los créditos aún no se han añadido.</p>
+        </>)}
+        {state.kind === "none" && (<>
+          <AlertCircle className="h-14 w-14 mx-auto text-warning" />
+          <h1 className="mt-3 font-display text-3xl">Sin pago pendiente</h1>
+          <p className="text-muted-foreground mt-1">No encontramos un pago en este navegador.</p>
+        </>)}
+        {state.kind === "error" && (<>
+          <AlertCircle className="h-14 w-14 mx-auto text-destructive" />
+          <h1 className="mt-3 font-display text-3xl">Algo falló</h1>
+          <p className="text-muted-foreground mt-1">{state.msg}</p>
+        </>)}
+        <Link to="/app" className="mt-6 inline-block rounded-2xl bg-primary px-5 py-3 font-display text-primary-foreground sticker">
+          Volver a mi tarjeta
         </Link>
       </div>
     </main>

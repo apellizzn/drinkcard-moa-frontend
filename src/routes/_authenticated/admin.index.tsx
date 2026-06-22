@@ -4,16 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  CreditCard,
-  Mail,
-  ReceiptText,
-  TicketCheck,
-  TrendingUp,
-  Users,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { CreditCard, Mail, ReceiptText, TicketCheck, TrendingUp, Users, Wallet } from "lucide-react";
 import {
   inviteUser,
   listDrinkCardAccounts,
@@ -26,8 +17,6 @@ import {
 } from "@/services/api/admin-service";
 import type { DrinkCardAccount } from "@/services/api/drink-card-service";
 import { ApiError } from "@/services/api/http-client";
-import { useI18n } from "@/i18n/i18n";
-import { drinkKey } from "@/i18n/format";
 
 type AccountResponse = DrinkCardAccount[] | PageResponse<DrinkCardAccount>;
 
@@ -36,17 +25,10 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 function Dashboard() {
-  const { t } = useI18n();
   const users = useQuery({ queryKey: ["admin", "users"], queryFn: () => listVolunteerUsers(200) });
   const accounts = useQuery({ queryKey: ["admin", "accounts"], queryFn: listDrinkCardAccounts });
-  const revenuePayments = useQuery({
-    queryKey: ["admin", "payments", "revenue"],
-    queryFn: () => listAllAdminPayments({ status: "SUCCESS" }),
-  });
-  const tickets = useQuery({
-    queryKey: ["admin", "tickets", "dashboard"],
-    queryFn: () => listAdminTickets({ size: 500 }),
-  });
+  const revenuePayments = useQuery({ queryKey: ["admin", "payments", "revenue"], queryFn: () => listAllAdminPayments({ status: "SUCCESS" }) });
+  const tickets = useQuery({ queryKey: ["admin", "tickets", "dashboard"], queryFn: () => listAdminTickets({ size: 500 }) });
 
   const userList = arr<UserSummary>(users.data);
   const accList = arr<DrinkCardAccount>(accounts.data as AccountResponse | undefined);
@@ -57,53 +39,33 @@ function Dashboard() {
   const totalCredits = accList.reduce((s, a) => s + (a.credits || 0), 0);
   const revenue = revenuePayList.reduce((s, p) => s + (p.amount ?? 0), 0);
 
-  const mix = drinkMix(consumedTickets, t);
-  const volunteerRanking = topVolunteers(consumedTickets, userList, t("common.volunteer"));
+  const mix = drinkMix(consumedTickets);
+  const volunteerRanking = topVolunteers(consumedTickets, userList);
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-slate-500">{t("admin.nav.dashboard")}</p>
-        <h1 className="mt-1 text-3xl font-semibold text-slate-950">{t("admin.dashboardTitle")}</h1>
+        <p className="text-sm font-medium text-slate-500">Dashboard</p>
+        <h1 className="mt-1 text-3xl font-semibold text-slate-950">Vista general</h1>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={CreditCard} label={t("admin.activeCards")} value={activeCards} accent="red" />
-        <Kpi
-          icon={Wallet}
-          label={t("admin.creditsCirculating")}
-          value={totalCredits}
-          accent="amber"
-        />
-        <Kpi icon={Users} label={t("admin.volunteers")} value={userList.length} accent="blue" />
-        <Kpi
-          icon={TrendingUp}
-          label={t("admin.confirmedRevenue")}
-          value={revenuePayments.isLoading ? "..." : revenue.toFixed(2)}
-          accent="green"
-        />
+        <Kpi icon={CreditCard} label="Tarjetas activas" value={activeCards} accent="red" />
+        <Kpi icon={Wallet} label="Créditos en circulación" value={totalCredits} accent="amber" />
+        <Kpi icon={Users} label="Voluntarios" value={userList.length} accent="blue" />
+        <Kpi icon={TrendingUp} label="Ingresos confirmados (€)" value={revenuePayments.isLoading ? "..." : revenue.toFixed(2)} accent="green" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <MiniMetric
-          icon={TicketCheck}
-          label={t("admin.servedDrinks")}
-          value={consumedTickets.length}
-          tone="green"
-        />
-        <MiniMetric
-          icon={ReceiptText}
-          label={t("admin.processedPayments")}
-          value={revenuePayList.length}
-          tone="amber"
-        />
+        <MiniMetric icon={TicketCheck} label="Consumiciones servidas" value={consumedTickets.length} tone="green" />
+        <MiniMetric icon={ReceiptText} label="Pagos procesados" value={revenuePayList.length} tone="amber" />
       </div>
 
       <InviteCard />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="admin-panel p-5 lg:col-span-2">
-          <h2 className="text-base font-semibold text-slate-950">{t("admin.consumedDrinks")}</h2>
-          <p className="mt-1 text-sm text-slate-500">{t("admin.consumedDrinksDesc")}</p>
+          <h2 className="text-base font-semibold text-slate-950">Bebidas consumidas</h2>
+          <p className="mt-1 text-sm text-slate-500">Cantidad y porcentaje sobre tickets canjeados.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {mix.map((m) => (
               <div key={m.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -119,33 +81,24 @@ function Dashboard() {
                 </div>
               </div>
             ))}
-            {mix.length === 0 && (
-              <p className="text-sm text-slate-500">{t("admin.noConsumedDrinks")}</p>
-            )}
+            {mix.length === 0 && <p className="text-sm text-slate-500">Sin consumiciones canjeadas todavía.</p>}
           </div>
         </section>
 
         <div className="admin-panel p-5">
-          <h2 className="text-base font-semibold text-slate-950">{t("admin.topVolunteers")}</h2>
-          <p className="mt-1 text-sm text-slate-500">{t("admin.topVolunteersDesc")}</p>
+          <h2 className="text-base font-semibold text-slate-950">Voluntarios con más consumos</h2>
+          <p className="mt-1 text-sm text-slate-500">Ranking por tickets canjeados.</p>
           <div className="mt-5 space-y-3">
             {volunteerRanking.map((v, index) => (
-              <div
-                key={v.volunteerId}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5"
-              >
+              <div key={v.volunteerId} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-950">
-                    {index + 1}. {v.name}
-                  </p>
+                  <p className="truncate text-sm font-medium text-slate-950">{index + 1}. {v.name}</p>
                   <p className="font-mono text-xs text-slate-500">{v.volunteerId.slice(0, 8)}...</p>
                 </div>
                 <span className="text-lg font-semibold text-slate-950">{v.count}</span>
               </div>
             ))}
-            {volunteerRanking.length === 0 && (
-              <p className="text-sm text-slate-500">{t("admin.noConsumptionData")}</p>
-            )}
+            {volunteerRanking.length === 0 && <p className="text-sm text-slate-500">Sin datos de consumo todavía.</p>}
           </div>
         </div>
       </div>
@@ -153,14 +106,9 @@ function Dashboard() {
   );
 }
 
-function drinkMix(tickets: AdminDrinkTicketSummary[], t: ReturnType<typeof useI18n>["t"]) {
-  const colors = [
-    "bg-neon-yellow",
-    "bg-neon-pink",
-    "bg-neon-orange",
-    "bg-neon-cyan",
-    "bg-neon-lime",
-  ];
+function drinkMix(tickets: AdminDrinkTicketSummary[]) {
+  const labels: Record<string, string> = { BEER: "Cerveza", WINE: "Vino", SOFT_DRINK: "Refresco", WATER: "Agua" };
+  const colors = ["bg-neon-yellow", "bg-neon-pink", "bg-neon-orange", "bg-neon-cyan", "bg-neon-lime"];
   const counts = tickets.reduce<Record<string, number>>((acc, ticket) => {
     acc[ticket.drinkType] = (acc[ticket.drinkType] ?? 0) + 1;
     return acc;
@@ -170,18 +118,14 @@ function drinkMix(tickets: AdminDrinkTicketSummary[], t: ReturnType<typeof useI1
   return Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .map(([drink, count], index) => ({
-      label: t(drinkKey(drink)),
+      label: labels[drink] ?? drink,
       count,
       value: Math.round((count / total) * 100),
       color: colors[index % colors.length],
     }));
 }
 
-function topVolunteers(
-  tickets: AdminDrinkTicketSummary[],
-  users: UserSummary[],
-  fallbackName: string,
-) {
+function topVolunteers(tickets: AdminDrinkTicketSummary[], users: UserSummary[]) {
   const names = new Map(users.map((u) => [u.userId, u.fullName || u.email || u.userId]));
   const counts = tickets.reduce<Record<string, number>>((acc, ticket) => {
     acc[ticket.volunteerId] = (acc[ticket.volunteerId] ?? 0) + 1;
@@ -194,21 +138,11 @@ function topVolunteers(
     .map(([volunteerId, count]) => ({
       volunteerId,
       count,
-      name: names.get(volunteerId) ?? fallbackName,
+      name: names.get(volunteerId) ?? "Voluntario",
     }));
 }
 
-function Kpi({
-  icon: Icon,
-  label,
-  value,
-  accent,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string | number;
-  accent: "red" | "amber" | "blue" | "green";
-}) {
+function Kpi({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string | number; accent: "red" | "amber" | "blue" | "green" }) {
   const colors = {
     red: "text-red-600 bg-red-50",
     amber: "text-amber-600 bg-amber-50",
@@ -227,17 +161,7 @@ function Kpi({
   );
 }
 
-function MiniMetric({
-  icon: Icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: number | string;
-  tone: "green" | "amber" | "slate";
-}) {
+function MiniMetric({ icon: Icon, label, value, tone }: { icon: any; label: string; value: number | string; tone: "green" | "amber" | "slate" }) {
   const colors = {
     green: "bg-emerald-50 text-emerald-700",
     amber: "bg-amber-50 text-amber-700",
@@ -259,28 +183,17 @@ function MiniMetric({
 
 function arr<T>(x: unknown): T[] {
   if (Array.isArray(x)) return x as T[];
-  if (x && typeof x === "object" && "content" in x) {
-    const content = (x as { content?: unknown }).content;
-    if (Array.isArray(content)) return content as T[];
-  }
+  if (x && typeof x === "object" && "content" in (x as any) && Array.isArray((x as any).content)) return (x as any).content;
   return [];
 }
 
-interface InviteForm {
-  email: string;
-}
+const inviteSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+type InviteForm = z.infer<typeof inviteSchema>;
 
 function InviteCard() {
-  const { t } = useI18n();
-  const inviteSchema = z.object({
-    email: z.string().email(t("errors.emailInvalidShort")),
-  });
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<InviteForm>({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<InviteForm>({
     resolver: zodResolver(inviteSchema),
     defaultValues: { email: "" },
   });
@@ -288,10 +201,10 @@ function InviteCard() {
   const onSubmit = handleSubmit(async ({ email }) => {
     try {
       await inviteUser({ email, role: "VOLUNTEER" });
-      toast.success(t("toast.invitationSent", { email }));
+      toast.success(`Invitación enviada a ${email}`);
       reset();
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t("errors.invitation");
+      const msg = err instanceof ApiError ? err.message : "Error al enviar la invitación";
       toast.error(msg);
     }
   });
@@ -303,15 +216,15 @@ function InviteCard() {
           <Mail className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950">{t("admin.inviteVolunteer")}</h2>
-          <p className="mt-1 text-sm text-slate-500">{t("admin.inviteDesc")}</p>
+          <h2 className="text-base font-semibold text-slate-950">Invitar voluntario</h2>
+          <p className="mt-1 text-sm text-slate-500">Envía un enlace de registro al email indicado.</p>
         </div>
       </div>
       <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="flex-1">
           <input
             type="email"
-            placeholder="email@example.com"
+            placeholder="email@ejemplo.com"
             autoComplete="email"
             disabled={isSubmitting}
             {...register("email")}
@@ -324,7 +237,7 @@ function InviteCard() {
           disabled={isSubmitting}
           className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
         >
-          {isSubmitting ? t("admin.sending") : t("admin.sendInvitation")}
+          {isSubmitting ? "Enviando..." : "Enviar invitación"}
         </button>
       </form>
     </section>

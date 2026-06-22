@@ -1,41 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { ArrowLeft, Beer, CreditCard, ReceiptText } from "lucide-react";
 import { listCurrentVolunteerPayments } from "@/services/api/payment-service";
 import { listCurrentVolunteerTickets, type Ticket } from "@/services/api/ticket-service";
 import { AdminStatusBadge } from "@/components/admin/AdminDataTable";
-import { useI18n } from "@/i18n/i18n";
-import { dateLocales, drinkKey } from "@/i18n/format";
 
 export const Route = createFileRoute("/_authenticated/app/history")({
   component: HistoryPage,
   head: () => ({ meta: [{ title: "Historial — DrinkCard MOA" }] }),
 });
 
+const DRINK_LABELS: Record<string, string> = {
+  BEER: "Cerveza",
+  WINE: "Vino",
+  SOFT_DRINK: "Refresco",
+  WATER: "Agua",
+};
+
 function HistoryPage() {
-  const { language, t } = useI18n();
-  const tickets = useQuery({
-    queryKey: ["tickets", "me"],
-    queryFn: () => listCurrentVolunteerTickets(25),
-  });
-  const payments = useQuery({
-    queryKey: ["payments", "me"],
-    queryFn: () => listCurrentVolunteerPayments(25),
-  });
+  const tickets = useQuery({ queryKey: ["tickets", "me"], queryFn: () => listCurrentVolunteerTickets(25) });
+  const payments = useQuery({ queryKey: ["payments", "me"], queryFn: () => listCurrentVolunteerPayments(25) });
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <Link
-        to="/app"
-        className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> {t("app.historyBack")}
+      <Link to="/app" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" /> Volver a mi tarjeta
       </Link>
 
       <div className="mt-5">
-        <h1 className="font-display text-5xl">{t("app.historyTitle")}</h1>
-        <p className="mt-1 text-muted-foreground">{t("app.historySubtitle")}</p>
+        <h1 className="font-display text-5xl">Historial</h1>
+        <p className="mt-1 text-muted-foreground">Tus pagos y bebidas generadas desde el backend.</p>
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -45,15 +41,13 @@ function HistoryPage() {
               <Beer className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-display text-2xl">{t("app.historyDrinks")}</h2>
-              <p className="text-sm text-muted-foreground">{t("app.historyTickets")}</p>
+              <h2 className="font-display text-2xl">Bebidas</h2>
+              <p className="text-sm text-muted-foreground">Tickets QR emitidos</p>
             </div>
           </div>
           <div className="mt-5 space-y-3">
-            {tickets.isLoading && <Empty>{t("app.historyLoadingTickets")}</Empty>}
-            {!tickets.isLoading && (tickets.data?.content.length ?? 0) === 0 && (
-              <Empty>{t("app.historyNoTickets")}</Empty>
-            )}
+            {tickets.isLoading && <Empty>Cargando tickets...</Empty>}
+            {!tickets.isLoading && (tickets.data?.content.length ?? 0) === 0 && <Empty>No hay tickets todavía.</Empty>}
             {tickets.data?.content.map((ticket) => (
               <TicketRow key={ticket.drinkTicketId ?? ticket.ticketId} ticket={ticket} />
             ))}
@@ -66,15 +60,13 @@ function HistoryPage() {
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-display text-2xl">{t("app.historyPayments")}</h2>
-              <p className="text-sm text-muted-foreground">{t("app.historyTopUps")}</p>
+              <h2 className="font-display text-2xl">Pagos</h2>
+              <p className="text-sm text-muted-foreground">Recargas de créditos</p>
             </div>
           </div>
           <div className="mt-5 space-y-3">
-            {payments.isLoading && <Empty>{t("app.historyLoadingPayments")}</Empty>}
-            {!payments.isLoading && (payments.data?.content.length ?? 0) === 0 && (
-              <Empty>{t("app.historyNoPayments")}</Empty>
-            )}
+            {payments.isLoading && <Empty>Cargando pagos...</Empty>}
+            {!payments.isLoading && (payments.data?.content.length ?? 0) === 0 && <Empty>No hay pagos todavía.</Empty>}
             {payments.data?.content.map((payment) => (
               <div key={payment.paymentId} className="rounded-2xl border-2 bg-background p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -83,11 +75,7 @@ function HistoryPage() {
                       <ReceiptText className="h-4 w-4" /> {(payment.amount ?? 0).toFixed(2)} €
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {payment.createdAt
-                        ? format(new Date(payment.createdAt), "d MMM yyyy, HH:mm", {
-                            locale: dateLocales[language],
-                          })
-                        : t("common.noDate")}
+                      {payment.createdAt ? format(new Date(payment.createdAt), "d MMM yyyy, HH:mm", { locale: es }) : "Sin fecha"}
                     </p>
                   </div>
                   <AdminStatusBadge status={payment.status} />
@@ -102,15 +90,12 @@ function HistoryPage() {
 }
 
 function TicketRow({ ticket }: { ticket: Ticket }) {
-  const { language, t } = useI18n();
-  const created = ticket.createdAt
-    ? format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: dateLocales[language] })
-    : t("common.noDate");
+  const created = ticket.createdAt ? format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: es }) : "Sin fecha";
   return (
     <div className="rounded-2xl border-2 bg-background p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="font-medium">{t(drinkKey(ticket.drinkType))}</div>
+          <div className="font-medium">{DRINK_LABELS[ticket.drinkType] ?? ticket.drinkType}</div>
           <p className="mt-1 text-xs text-muted-foreground">{created}</p>
         </div>
         <AdminStatusBadge status={ticket.status} />
@@ -120,9 +105,5 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
 }
 
 function Empty({ children }: { children: string }) {
-  return (
-    <div className="rounded-2xl border-2 border-dashed p-5 text-center text-sm text-muted-foreground">
-      {children}
-    </div>
-  );
+  return <div className="rounded-2xl border-2 border-dashed p-5 text-center text-sm text-muted-foreground">{children}</div>;
 }

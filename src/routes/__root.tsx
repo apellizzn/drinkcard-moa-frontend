@@ -9,24 +9,24 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { useServiceWorker } from "@/hooks/use-service-worker";
-import { I18nProvider, useI18n } from "@/i18n/i18n";
 
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
-  const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="max-w-md text-center">
         <h1 className="font-display text-8xl text-primary">404</h1>
-        <h2 className="mt-2 font-display text-2xl">{t("errors.notFoundTitle")}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{t("errors.notFoundBody")}</p>
+        <h2 className="mt-2 font-display text-2xl">Página no encontrada</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          La página que buscas no existe o se movió de barra.
+        </p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 font-display tracking-wide text-primary-foreground sticker"
           >
-            {t("errors.notFoundAction")}
+            Volver al inicio
           </Link>
         </div>
       </div>
@@ -37,11 +37,10 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-2xl">{t("errors.loadTitle")}</h1>
+        <h1 className="font-display text-2xl">Algo no cargó bien</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -51,10 +50,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="rounded-xl bg-primary px-4 py-2 font-display text-primary-foreground sticker"
           >
-            {t("common.retry")}
+            Reintentar
           </button>
           <a href="/" className="rounded-xl border-2 px-4 py-2 font-display">
-            {t("errors.home")}
+            Inicio
           </a>
         </div>
       </div>
@@ -118,7 +117,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <I18nProvider>{children}</I18nProvider>
+        {children}
         <Scripts />
       </body>
     </html>
