@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -85,6 +85,11 @@ function LoginPage() {
             placeholder="••••••••"
           />
         </Field>
+        <div className="text-right text-sm">
+          <Link to="/forgot-password" className="text-primary underline-offset-4 hover:underline">
+            {t("auth.forgotPassword")}
+          </Link>
+        </div>
         <button
           type="submit"
           disabled={isSubmitting}
