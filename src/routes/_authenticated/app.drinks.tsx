@@ -43,6 +43,15 @@ const DRINK_GROUPS: Array<{
   },
 ];
 
+const markerColorClass: Record<(typeof DRINK_GROUPS)[number]["color"], string> = {
+  yellow: "bg-neon-yellow text-foreground",
+  pink: "bg-neon-pink text-foreground",
+  cyan: "bg-neon-cyan text-background",
+  orange: "bg-neon-orange text-foreground",
+  lime: "bg-neon-lime text-foreground",
+  violet: "bg-neon-violet text-foreground",
+};
+
 export const Route = createFileRoute("/_authenticated/app/drinks")({
   component: DrinksPage,
   head: () => ({ meta: [{ title: `${translateNow("drinks.title")} — DrinkCard MOA` }] }),
@@ -109,9 +118,11 @@ function DrinksPage() {
                     <span className="font-display text-xl leading-none sm:text-2xl">
                       {translateDrink(language, drinkId)}
                     </span>
-                    <Sticker color={group.color} rotate={-6} className="ml-3 shrink-0 text-xs">
+                    <span
+                      className={`ml-3 shrink-0 rounded-full px-3 py-1 font-display text-xs uppercase tracking-wider ${markerColorClass[group.color]}`}
+                    >
                       {t("drinks.oneStar")}
-                    </Sticker>
+                    </span>
                   </button>
                 ))}
               </div>
