@@ -3,7 +3,12 @@ import { useMutation } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 import { createDrinkTicket } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
@@ -39,7 +44,15 @@ const DRINK_GROUPS: Array<{
   {
     title: "drinkGroups.cocktails",
     color: "violet",
-    drinks: ["MOJITO", "GIN_TONIC", "GIN_LEMON", "VODKA_TONIC", "VODKA_LEMON", "NEGRONI", "AMERICANO"],
+    drinks: [
+      "MOJITO",
+      "GIN_TONIC",
+      "GIN_LEMON",
+      "VODKA_TONIC",
+      "VODKA_LEMON",
+      "NEGRONI",
+      "AMERICANO",
+    ],
   },
 ];
 
@@ -97,10 +110,10 @@ function DrinksPage() {
           <AccordionItem
             key={group.title}
             value={group.title}
-            className="rounded-3xl border-2 bg-card px-4 sticker-lg"
+            className="overflow-visible rounded-3xl border-2 bg-card px-5 sticker-lg"
           >
-            <AccordionTrigger className="py-4 hover:no-underline">
-              <span className="flex items-center gap-3">
+            <AccordionTrigger className="overflow-visible py-5 hover:no-underline">
+              <span className="flex items-center gap-3 overflow-visible py-1 pl-1">
                 <Sticker color={group.color} rotate={-3} size="md" className="text-base sm:text-lg">
                   {t(group.title)}
                 </Sticker>
@@ -113,7 +126,7 @@ function DrinksPage() {
                     key={drinkId}
                     disabled={create.isPending}
                     onClick={() => create.mutate(drinkId)}
-                    className="flex w-full items-center justify-between rounded-2xl border-2 bg-background px-4 py-3 text-left sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60"
+                    className="flex w-full items-center justify-between rounded-2xl border-2 bg-muted px-4 py-3 text-left disabled:opacity-60"
                   >
                     <span className="font-display text-xl leading-none sm:text-2xl">
                       {translateDrink(language, drinkId)}
