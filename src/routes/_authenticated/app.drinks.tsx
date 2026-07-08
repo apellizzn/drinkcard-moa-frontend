@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 import { createDrinkTicket } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowLeft, Beer, Wine, Droplet, GlassWater, Martini, CupSoda } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
@@ -105,36 +106,46 @@ function DrinksPage() {
         </Sticker>
         <h1 className="mt-3 font-display text-5xl">{t("drinks.title")}</h1>
       </div>
-      <div className="space-y-7">
+      <Accordion type="multiple" className="space-y-3">
         {DRINK_GROUPS.map((group) => (
-          <section key={group.title}>
-            <div className="mb-3 flex items-center gap-3">
-              <Sticker color={group.color} rotate={-3} size="md" className="text-base sm:text-lg">
-                {t(group.title)}
-              </Sticker>
-              <div className="h-px flex-1 border-t-2 border-dashed border-foreground/20" />
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {group.drinks.map((d) => (
-                <button
-                  key={d.id}
-                  disabled={create.isPending}
-                  onClick={() => create.mutate(d.id)}
-                  className="relative group rounded-2xl border-2 bg-card p-4 sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
-                >
-                  <Sticker color={group.color} rotate={-8} className="absolute -top-2 -right-2 text-xs">
-                    {t("drinks.oneStar")}
-                  </Sticker>
-                  <d.icon className="h-8 w-8 text-primary" />
-                  <div className="mt-3 font-display text-xl leading-none sm:text-2xl">
-                    {translateDrink(language, d.id)}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
+          <AccordionItem
+            key={group.title}
+            value={group.title}
+            className="rounded-3xl border-2 bg-card px-4 sticker-lg"
+          >
+            <AccordionTrigger className="py-4 hover:no-underline">
+              <span className="flex items-center gap-3">
+                <Sticker color={group.color} rotate={-3} size="md" className="text-base sm:text-lg">
+                  {t(group.title)}
+                </Sticker>
+                <span className="font-display text-lg text-muted-foreground">
+                  {group.drinks.length} {t("history.drinks").toLowerCase()}
+                </span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {group.drinks.map((d) => (
+                  <button
+                    key={d.id}
+                    disabled={create.isPending}
+                    onClick={() => create.mutate(d.id)}
+                    className="relative group rounded-2xl border-2 bg-background p-4 sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
+                  >
+                    <Sticker color={group.color} rotate={-8} className="absolute -top-2 -right-2 text-xs">
+                      {t("drinks.oneStar")}
+                    </Sticker>
+                    <d.icon className="h-8 w-8 text-primary" />
+                    <div className="mt-3 font-display text-xl leading-none sm:text-2xl">
+                      {translateDrink(language, d.id)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </div>
+      </Accordion>
     </main>
   );
 }
