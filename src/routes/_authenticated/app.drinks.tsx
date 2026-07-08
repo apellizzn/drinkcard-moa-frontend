@@ -4,7 +4,7 @@ import { ApiError } from "@/lib/api";
 import { createDrinkTicket } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowLeft, Beer, Wine, Droplet, GlassWater, Martini, CupSoda } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
 import { storeCurrentTicket } from "@/services/tickets/ticket-storage";
@@ -14,55 +14,32 @@ import { useLanguage } from "@/lib/i18n-react";
 const DRINK_GROUPS: Array<{
   title: TranslationKey;
   color: "yellow" | "pink" | "cyan" | "orange" | "lime" | "violet";
-  drinks: Array<{ id: string; icon: typeof Beer }>;
+  drinks: string[];
 }> = [
   {
     title: "drinkGroups.beer",
     color: "yellow",
-    drinks: [
-      { id: "PILS_BEER", icon: Beer },
-      { id: "RED_BEER", icon: Beer },
-      { id: "BOA", icon: Beer },
-      { id: "ALCOHOL_FREE_BEER", icon: Beer },
-    ],
+    drinks: ["PILS_BEER", "RED_BEER", "BOA", "ALCOHOL_FREE_BEER"],
   },
   {
     title: "drinkGroups.spritz",
     color: "orange",
-    drinks: [
-      { id: "SPRITZ_APEROL", icon: Martini },
-      { id: "SPRITZ_CAMPARI", icon: Martini },
-      { id: "SPRITZ_CYNAR", icon: Martini },
-    ],
+    drinks: ["SPRITZ_APEROL", "SPRITZ_CAMPARI", "SPRITZ_CYNAR"],
   },
   {
     title: "drinkGroups.wine",
     color: "pink",
-    drinks: [
-      { id: "BASE_WINE", icon: Wine },
-      { id: "PREMIUM_WINE", icon: Wine },
-    ],
+    drinks: ["BASE_WINE", "PREMIUM_WINE"],
   },
   {
     title: "drinkGroups.soft",
     color: "cyan",
-    drinks: [
-      { id: "SOFT_DRINK", icon: CupSoda },
-      { id: "WATER", icon: Droplet },
-    ],
+    drinks: ["SOFT_DRINK", "WATER"],
   },
   {
     title: "drinkGroups.cocktails",
     color: "violet",
-    drinks: [
-      { id: "MOJITO", icon: GlassWater },
-      { id: "GIN_TONIC", icon: GlassWater },
-      { id: "GIN_LEMON", icon: GlassWater },
-      { id: "VODKA_TONIC", icon: GlassWater },
-      { id: "VODKA_LEMON", icon: GlassWater },
-      { id: "NEGRONI", icon: Martini },
-      { id: "AMERICANO", icon: Martini },
-    ],
+    drinks: ["MOJITO", "GIN_TONIC", "GIN_LEMON", "VODKA_TONIC", "VODKA_LEMON", "NEGRONI", "AMERICANO"],
   },
 ];
 
@@ -118,27 +95,23 @@ function DrinksPage() {
                 <Sticker color={group.color} rotate={-3} size="md" className="text-base sm:text-lg">
                   {t(group.title)}
                 </Sticker>
-                <span className="font-display text-lg text-muted-foreground">
-                  {group.drinks.length} {t("history.drinks").toLowerCase()}
-                </span>
               </span>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {group.drinks.map((d) => (
+              <div className="space-y-2">
+                {group.drinks.map((drinkId) => (
                   <button
-                    key={d.id}
+                    key={drinkId}
                     disabled={create.isPending}
-                    onClick={() => create.mutate(d.id)}
-                    className="relative group rounded-2xl border-2 bg-background p-4 sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
+                    onClick={() => create.mutate(drinkId)}
+                    className="flex w-full items-center justify-between rounded-2xl border-2 bg-background px-4 py-3 text-left sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60"
                   >
-                    <Sticker color={group.color} rotate={-8} className="absolute -top-2 -right-2 text-xs">
+                    <span className="font-display text-xl leading-none sm:text-2xl">
+                      {translateDrink(language, drinkId)}
+                    </span>
+                    <Sticker color={group.color} rotate={-6} className="ml-3 shrink-0 text-xs">
                       {t("drinks.oneStar")}
                     </Sticker>
-                    <d.icon className="h-8 w-8 text-primary" />
-                    <div className="mt-3 font-display text-xl leading-none sm:text-2xl">
-                      {translateDrink(language, d.id)}
-                    </div>
                   </button>
                 ))}
               </div>
