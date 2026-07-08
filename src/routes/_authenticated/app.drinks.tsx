@@ -12,50 +12,55 @@ import { useLanguage } from "@/lib/i18n-react";
 
 const DRINK_GROUPS: Array<{
   title: TranslationKey;
-  drinks: Array<{ id: string; icon: typeof Beer; color: "yellow" | "pink" | "cyan" | "orange" }>;
+  color: "yellow" | "pink" | "cyan" | "orange";
+  drinks: Array<{ id: string; icon: typeof Beer }>;
 }> = [
   {
     title: "drinkGroups.beer",
+    color: "yellow",
     drinks: [
-      { id: "PILS_BEER", icon: Beer, color: "yellow" },
-      { id: "RED_BEER", icon: Beer, color: "pink" },
-      { id: "BOA", icon: Beer, color: "yellow" },
-      { id: "ALCOHOL_FREE_BEER", icon: Beer, color: "cyan" },
+      { id: "PILS_BEER", icon: Beer },
+      { id: "RED_BEER", icon: Beer },
+      { id: "BOA", icon: Beer },
+      { id: "ALCOHOL_FREE_BEER", icon: Beer },
     ],
   },
   {
     title: "drinkGroups.spritz",
+    color: "orange",
     drinks: [
-      { id: "SPRITZ_APEROL", icon: Martini, color: "orange" },
-      { id: "SPRITZ_CAMPARI", icon: Martini, color: "pink" },
-      { id: "SPRITZ_CYNAR", icon: Martini, color: "yellow" },
+      { id: "SPRITZ_APEROL", icon: Martini },
+      { id: "SPRITZ_CAMPARI", icon: Martini },
+      { id: "SPRITZ_CYNAR", icon: Martini },
     ],
   },
   {
     title: "drinkGroups.wine",
+    color: "pink",
     drinks: [
-      { id: "WINE", icon: Wine, color: "pink" },
-      { id: "BASE_WINE", icon: Wine, color: "yellow" },
-      { id: "PREMIUM_WINE", icon: Wine, color: "pink" },
+      { id: "BASE_WINE", icon: Wine },
+      { id: "PREMIUM_WINE", icon: Wine },
     ],
   },
   {
     title: "drinkGroups.soft",
+    color: "cyan",
     drinks: [
-      { id: "SOFT_DRINK", icon: CupSoda, color: "orange" },
-      { id: "WATER", icon: Droplet, color: "cyan" },
+      { id: "SOFT_DRINK", icon: CupSoda },
+      { id: "WATER", icon: Droplet },
     ],
   },
   {
     title: "drinkGroups.cocktails",
+    color: "orange",
     drinks: [
-      { id: "MOJITO", icon: GlassWater, color: "cyan" },
-      { id: "GIN_TONIC", icon: GlassWater, color: "yellow" },
-      { id: "GIN_LEMON", icon: GlassWater, color: "orange" },
-      { id: "VODKA_TONIC", icon: GlassWater, color: "cyan" },
-      { id: "VODKA_LEMON", icon: GlassWater, color: "orange" },
-      { id: "NEGRONI", icon: Martini, color: "pink" },
-      { id: "AMERICANO", icon: Martini, color: "orange" },
+      { id: "MOJITO", icon: GlassWater },
+      { id: "GIN_TONIC", icon: GlassWater },
+      { id: "GIN_LEMON", icon: GlassWater },
+      { id: "VODKA_TONIC", icon: GlassWater },
+      { id: "VODKA_LEMON", icon: GlassWater },
+      { id: "NEGRONI", icon: Martini },
+      { id: "AMERICANO", icon: Martini },
     ],
   },
 ];
@@ -114,7 +119,7 @@ function DrinksPage() {
                   onClick={() => create.mutate(d.id)}
                   className="relative group rounded-2xl border-2 bg-card p-4 sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
                 >
-                  <Sticker color={d.color} rotate={-8} className="absolute -top-2 -right-2 text-xs">
+                  <Sticker color={group.color} rotate={-8} className="absolute -top-2 -right-2 text-xs">
                     {t("drinks.oneStar")}
                   </Sticker>
                   <d.icon className="h-8 w-8 text-primary" />
