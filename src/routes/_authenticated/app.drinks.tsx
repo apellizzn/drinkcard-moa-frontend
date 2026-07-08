@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 import { createDrinkTicket } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
-import { ArrowLeft, Beer, Wine, Droplet, GlassWater } from "lucide-react";
+import { ArrowLeft, Beer, Wine, Droplet, GlassWater, Martini, CupSoda } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
 import { storeCurrentTicket } from "@/services/tickets/ticket-storage";
@@ -11,10 +11,25 @@ import { translateDrink, translateNow } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
 
 const DRINKS = [
-  { id: "BEER", icon: Beer, color: "yellow" as const },
+  { id: "PILS_BEER", icon: Beer, color: "yellow" as const },
+  { id: "RED_BEER", icon: Beer, color: "pink" as const },
+  { id: "BOA", icon: Beer, color: "yellow" as const },
+  { id: "ALCOHOL_FREE_BEER", icon: Beer, color: "cyan" as const },
+  { id: "SPRITZ_APEROL", icon: Martini, color: "orange" as const },
+  { id: "SPRITZ_CAMPARI", icon: Martini, color: "pink" as const },
+  { id: "SPRITZ_CYNAR", icon: Martini, color: "yellow" as const },
   { id: "WINE", icon: Wine, color: "pink" as const },
+  { id: "SOFT_DRINK", icon: CupSoda, color: "orange" as const },
+  { id: "BASE_WINE", icon: Wine, color: "yellow" as const },
+  { id: "PREMIUM_WINE", icon: Wine, color: "pink" as const },
   { id: "WATER", icon: Droplet, color: "cyan" as const },
-  { id: "SOFT_DRINK", icon: GlassWater, color: "orange" as const },
+  { id: "MOJITO", icon: GlassWater, color: "cyan" as const },
+  { id: "GIN_TONIC", icon: GlassWater, color: "yellow" as const },
+  { id: "GIN_LEMON", icon: GlassWater, color: "orange" as const },
+  { id: "VODKA_TONIC", icon: GlassWater, color: "cyan" as const },
+  { id: "VODKA_LEMON", icon: GlassWater, color: "orange" as const },
+  { id: "NEGRONI", icon: Martini, color: "pink" as const },
+  { id: "AMERICANO", icon: Martini, color: "orange" as const },
 ];
 
 export const Route = createFileRoute("/_authenticated/app/drinks")({
