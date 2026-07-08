@@ -12,7 +12,7 @@ import { useLanguage } from "@/lib/i18n-react";
 
 const DRINK_GROUPS: Array<{
   title: TranslationKey;
-  color: "yellow" | "pink" | "cyan" | "orange";
+  color: "yellow" | "pink" | "cyan" | "orange" | "lime" | "violet";
   drinks: Array<{ id: string; icon: typeof Beer }>;
 }> = [
   {
@@ -52,7 +52,7 @@ const DRINK_GROUPS: Array<{
   },
   {
     title: "drinkGroups.cocktails",
-    color: "orange",
+    color: "violet",
     drinks: [
       { id: "MOJITO", icon: GlassWater },
       { id: "GIN_TONIC", icon: GlassWater },
@@ -108,9 +108,12 @@ function DrinksPage() {
       <div className="space-y-7">
         {DRINK_GROUPS.map((group) => (
           <section key={group.title}>
-            <h2 className="mb-3 font-display text-2xl tracking-wide text-muted-foreground">
-              {t(group.title)}
-            </h2>
+            <div className="mb-3 flex items-center gap-3">
+              <Sticker color={group.color} rotate={-3} size="md" className="text-base sm:text-lg">
+                {t(group.title)}
+              </Sticker>
+              <div className="h-px flex-1 border-t-2 border-dashed border-foreground/20" />
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {group.drinks.map((d) => (
                 <button
