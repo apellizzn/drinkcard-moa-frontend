@@ -3,19 +3,67 @@ import { useMutation } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 import { createDrinkTicket } from "@/services/api/ticket-service";
 import { Sticker } from "@/components/Sticker";
-import { ArrowLeft, Beer, Wine, Droplet, GlassWater } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
 import { storeCurrentTicket } from "@/services/tickets/ticket-storage";
-import { translateDrink, translateNow } from "@/lib/i18n";
+import { translateDrink, translateNow, type TranslationKey } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
 
-const DRINKS = [
-  { id: "BEER", icon: Beer, color: "yellow" as const },
-  { id: "WINE", icon: Wine, color: "pink" as const },
-  { id: "WATER", icon: Droplet, color: "cyan" as const },
-  { id: "SOFT_DRINK", icon: GlassWater, color: "orange" as const },
+const DRINK_GROUPS: Array<{
+  title: TranslationKey;
+  color: "yellow" | "pink" | "cyan" | "orange" | "lime" | "violet";
+  drinks: string[];
+}> = [
+  {
+    title: "drinkGroups.beer",
+    color: "yellow",
+    drinks: ["PILS_BEER", "RED_BEER", "BOA", "ALCOHOL_FREE_BEER"],
+  },
+  {
+    title: "drinkGroups.spritz",
+    color: "orange",
+    drinks: ["SPRITZ_APEROL", "SPRITZ_CAMPARI", "SPRITZ_CYNAR"],
+  },
+  {
+    title: "drinkGroups.wine",
+    color: "pink",
+    drinks: ["BASE_WINE", "PREMIUM_WINE"],
+  },
+  {
+    title: "drinkGroups.soft",
+    color: "cyan",
+    drinks: ["SOFT_DRINK", "WATER"],
+  },
+  {
+    title: "drinkGroups.cocktails",
+    color: "violet",
+    drinks: [
+      "MOJITO",
+      "GIN_TONIC",
+      "GIN_LEMON",
+      "VODKA_TONIC",
+      "VODKA_LEMON",
+      "NEGRONI",
+      "AMERICANO",
+    ],
+  },
 ];
+
+const markerColorClass: Record<(typeof DRINK_GROUPS)[number]["color"], string> = {
+  yellow: "bg-neon-yellow text-foreground",
+  pink: "bg-neon-pink text-foreground",
+  cyan: "bg-neon-cyan text-background",
+  orange: "bg-neon-orange text-foreground",
+  lime: "bg-neon-lime text-foreground",
+  violet: "bg-neon-violet text-foreground",
+};
 
 export const Route = createFileRoute("/_authenticated/app/drinks")({
   component: DrinksPage,
@@ -57,22 +105,44 @@ function DrinksPage() {
         </Sticker>
         <h1 className="mt-3 font-display text-5xl">{t("drinks.title")}</h1>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:gap-6">
-        {DRINKS.map((d) => (
-          <button
-            key={d.id}
-            disabled={create.isPending}
-            onClick={() => create.mutate(d.id)}
-            className="relative group rounded-3xl border-2 bg-card p-6 sm:p-8 sticker-lg hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
+      <Accordion type="multiple" className="space-y-3">
+        {DRINK_GROUPS.map((group) => (
+          <AccordionItem
+            key={group.title}
+            value={group.title}
+            className="overflow-visible rounded-3xl border-2 bg-card px-5 sticker-lg"
           >
-            <Sticker color={d.color} rotate={-8} className="absolute -top-3 -right-3">
-              {t("drinks.oneStar")}
-            </Sticker>
-            <d.icon className="h-14 w-14 text-primary" />
-            <div className="mt-4 font-display text-3xl">{translateDrink(language, d.id)}</div>
-          </button>
+            <AccordionTrigger className="overflow-visible py-5 hover:no-underline">
+              <span className="flex items-center gap-3 overflow-visible py-1 pl-1">
+                <Sticker color={group.color} rotate={-3} size="md" className="text-base sm:text-lg">
+                  {t(group.title)}
+                </Sticker>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4">
+              <div className="space-y-2">
+                {group.drinks.map((drinkId) => (
+                  <button
+                    key={drinkId}
+                    disabled={create.isPending}
+                    onClick={() => create.mutate(drinkId)}
+                    className="flex w-full items-center justify-between rounded-2xl border-2 bg-muted px-4 py-3 text-left disabled:opacity-60"
+                  >
+                    <span className="font-display text-xl leading-none sm:text-2xl">
+                      {translateDrink(language, drinkId)}
+                    </span>
+                    <span
+                      className={`ml-3 shrink-0 rounded-full px-3 py-1 font-display text-xs uppercase tracking-wider ${markerColorClass[group.color]}`}
+                    >
+                      {t("drinks.oneStar")}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </div>
+      </Accordion>
     </main>
   );
 }
