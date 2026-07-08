@@ -268,6 +268,12 @@ const esMessages = {
   "drinks.oneStar": "1 ★",
   "drinks.title": "¿Qué te apetece?",
 
+  "drinkGroups.beer": "Cervezas",
+  "drinkGroups.cocktails": "Cócteles",
+  "drinkGroups.soft": "Sin alcohol",
+  "drinkGroups.spritz": "Spritz",
+  "drinkGroups.wine": "Vinos",
+
   "errors.createPayment": "No se pudo crear el pago",
   "errors.incompleteUserSession": "Sesión incompleta: falta el identificador del usuario",
   "errors.incompleteVolunteerSession": "Sesión incompleta: falta el identificador del voluntario",
@@ -618,6 +624,12 @@ const messages = {
     "drinks.oneStar": "1 ★",
     "drinks.title": "Cosa ti va?",
 
+    "drinkGroups.beer": "Birre",
+    "drinkGroups.cocktails": "Cocktail",
+    "drinkGroups.soft": "Analcolici",
+    "drinkGroups.spritz": "Spritz",
+    "drinkGroups.wine": "Vini",
+
     "errors.createPayment": "Non è stato possibile creare il pagamento",
     "errors.incompleteUserSession": "Sessione incompleta: manca l'identificatore dell'utente",
     "errors.incompleteVolunteerSession":
@@ -966,6 +978,12 @@ const messages = {
     "drinks.oneStar": "1 ★",
     "drinks.title": "Qu'est-ce qui te tente ?",
 
+    "drinkGroups.beer": "Bières",
+    "drinkGroups.cocktails": "Cocktails",
+    "drinkGroups.soft": "Sans alcool",
+    "drinkGroups.spritz": "Spritz",
+    "drinkGroups.wine": "Vins",
+
     "errors.createPayment": "Impossible de créer le paiement",
     "errors.incompleteUserSession": "Session incomplète : il manque l'identifiant de l'utilisateur",
     "errors.incompleteVolunteerSession":
@@ -1312,6 +1330,12 @@ const messages = {
     "drinks.oneCredit": "1 credit per drink",
     "drinks.oneStar": "1 ★",
     "drinks.title": "What would you like?",
+
+    "drinkGroups.beer": "Beers",
+    "drinkGroups.cocktails": "Cocktails",
+    "drinkGroups.soft": "Alcohol-free",
+    "drinkGroups.spritz": "Spritz",
+    "drinkGroups.wine": "Wines",
 
     "errors.createPayment": "Could not create the payment",
     "errors.incompleteUserSession": "Incomplete session: missing user identifier",

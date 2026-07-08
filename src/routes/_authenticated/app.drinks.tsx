@@ -7,29 +7,57 @@ import { ArrowLeft, Beer, Wine, Droplet, GlassWater, Martini, CupSoda } from "lu
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
 import { storeCurrentTicket } from "@/services/tickets/ticket-storage";
-import { translateDrink, translateNow } from "@/lib/i18n";
+import { translateDrink, translateNow, type TranslationKey } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
 
-const DRINKS = [
-  { id: "PILS_BEER", icon: Beer, color: "yellow" as const },
-  { id: "RED_BEER", icon: Beer, color: "pink" as const },
-  { id: "BOA", icon: Beer, color: "yellow" as const },
-  { id: "ALCOHOL_FREE_BEER", icon: Beer, color: "cyan" as const },
-  { id: "SPRITZ_APEROL", icon: Martini, color: "orange" as const },
-  { id: "SPRITZ_CAMPARI", icon: Martini, color: "pink" as const },
-  { id: "SPRITZ_CYNAR", icon: Martini, color: "yellow" as const },
-  { id: "WINE", icon: Wine, color: "pink" as const },
-  { id: "SOFT_DRINK", icon: CupSoda, color: "orange" as const },
-  { id: "BASE_WINE", icon: Wine, color: "yellow" as const },
-  { id: "PREMIUM_WINE", icon: Wine, color: "pink" as const },
-  { id: "WATER", icon: Droplet, color: "cyan" as const },
-  { id: "MOJITO", icon: GlassWater, color: "cyan" as const },
-  { id: "GIN_TONIC", icon: GlassWater, color: "yellow" as const },
-  { id: "GIN_LEMON", icon: GlassWater, color: "orange" as const },
-  { id: "VODKA_TONIC", icon: GlassWater, color: "cyan" as const },
-  { id: "VODKA_LEMON", icon: GlassWater, color: "orange" as const },
-  { id: "NEGRONI", icon: Martini, color: "pink" as const },
-  { id: "AMERICANO", icon: Martini, color: "orange" as const },
+const DRINK_GROUPS: Array<{
+  title: TranslationKey;
+  drinks: Array<{ id: string; icon: typeof Beer; color: "yellow" | "pink" | "cyan" | "orange" }>;
+}> = [
+  {
+    title: "drinkGroups.beer",
+    drinks: [
+      { id: "PILS_BEER", icon: Beer, color: "yellow" },
+      { id: "RED_BEER", icon: Beer, color: "pink" },
+      { id: "BOA", icon: Beer, color: "yellow" },
+      { id: "ALCOHOL_FREE_BEER", icon: Beer, color: "cyan" },
+    ],
+  },
+  {
+    title: "drinkGroups.spritz",
+    drinks: [
+      { id: "SPRITZ_APEROL", icon: Martini, color: "orange" },
+      { id: "SPRITZ_CAMPARI", icon: Martini, color: "pink" },
+      { id: "SPRITZ_CYNAR", icon: Martini, color: "yellow" },
+    ],
+  },
+  {
+    title: "drinkGroups.wine",
+    drinks: [
+      { id: "WINE", icon: Wine, color: "pink" },
+      { id: "BASE_WINE", icon: Wine, color: "yellow" },
+      { id: "PREMIUM_WINE", icon: Wine, color: "pink" },
+    ],
+  },
+  {
+    title: "drinkGroups.soft",
+    drinks: [
+      { id: "SOFT_DRINK", icon: CupSoda, color: "orange" },
+      { id: "WATER", icon: Droplet, color: "cyan" },
+    ],
+  },
+  {
+    title: "drinkGroups.cocktails",
+    drinks: [
+      { id: "MOJITO", icon: GlassWater, color: "cyan" },
+      { id: "GIN_TONIC", icon: GlassWater, color: "yellow" },
+      { id: "GIN_LEMON", icon: GlassWater, color: "orange" },
+      { id: "VODKA_TONIC", icon: GlassWater, color: "cyan" },
+      { id: "VODKA_LEMON", icon: GlassWater, color: "orange" },
+      { id: "NEGRONI", icon: Martini, color: "pink" },
+      { id: "AMERICANO", icon: Martini, color: "orange" },
+    ],
+  },
 ];
 
 export const Route = createFileRoute("/_authenticated/app/drinks")({
@@ -72,20 +100,31 @@ function DrinksPage() {
         </Sticker>
         <h1 className="mt-3 font-display text-5xl">{t("drinks.title")}</h1>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:gap-6">
-        {DRINKS.map((d) => (
-          <button
-            key={d.id}
-            disabled={create.isPending}
-            onClick={() => create.mutate(d.id)}
-            className="relative group rounded-3xl border-2 bg-card p-6 sm:p-8 sticker-lg hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
-          >
-            <Sticker color={d.color} rotate={-8} className="absolute -top-3 -right-3">
-              {t("drinks.oneStar")}
-            </Sticker>
-            <d.icon className="h-14 w-14 text-primary" />
-            <div className="mt-4 font-display text-3xl">{translateDrink(language, d.id)}</div>
-          </button>
+      <div className="space-y-7">
+        {DRINK_GROUPS.map((group) => (
+          <section key={group.title}>
+            <h2 className="mb-3 font-display text-2xl tracking-wide text-muted-foreground">
+              {t(group.title)}
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {group.drinks.map((d) => (
+                <button
+                  key={d.id}
+                  disabled={create.isPending}
+                  onClick={() => create.mutate(d.id)}
+                  className="relative group rounded-2xl border-2 bg-card p-4 sticker hover:translate-y-[-2px] transition-transform disabled:opacity-60 text-left"
+                >
+                  <Sticker color={d.color} rotate={-8} className="absolute -top-2 -right-2 text-xs">
+                    {t("drinks.oneStar")}
+                  </Sticker>
+                  <d.icon className="h-8 w-8 text-primary" />
+                  <div className="mt-3 font-display text-xl leading-none sm:text-2xl">
+                    {translateDrink(language, d.id)}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
     </main>
