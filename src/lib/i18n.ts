@@ -214,6 +214,14 @@ const esMessages = {
   "admin.tickets.qrDrinks": "Consumiciones QR",
 
   "admin.volunteers.accountStatus": "Estado cuenta",
+  "admin.volunteers.addDrinkCardButton": "Añadir DrinkCard",
+  "admin.volunteers.addDrinkCardDescription":
+    "Registra manualmente una recarga para este voluntario.",
+  "admin.volunteers.addDrinkCardError": "No se pudo añadir la DrinkCard",
+  "admin.volunteers.addDrinkCardPending": "Añadiendo...",
+  "admin.volunteers.addDrinkCardSuccess":
+    "DrinkCard añadida: {{credits}} créditos por {{amount}} €",
+  "admin.volunteers.addDrinkCardTitle": "Recarga manual",
   "admin.volunteers.credits": "Créditos",
   "admin.volunteers.detail": "Detalle",
   "admin.volunteers.disableRefill": "Desactivar recarga",
@@ -570,6 +578,14 @@ const messages = {
     "admin.tickets.qrDrinks": "Consumazioni QR",
 
     "admin.volunteers.accountStatus": "Stato account",
+    "admin.volunteers.addDrinkCardButton": "Aggiungi DrinkCard",
+    "admin.volunteers.addDrinkCardDescription":
+      "Registra manualmente una ricarica per questo volontario.",
+    "admin.volunteers.addDrinkCardError": "Non è stato possibile aggiungere la DrinkCard",
+    "admin.volunteers.addDrinkCardPending": "Aggiunta...",
+    "admin.volunteers.addDrinkCardSuccess":
+      "DrinkCard aggiunta: {{credits}} crediti per {{amount}} €",
+    "admin.volunteers.addDrinkCardTitle": "Ricarica manuale",
     "admin.volunteers.credits": "Crediti",
     "admin.volunteers.detail": "Dettaglio",
     "admin.volunteers.disableRefill": "Disattiva ricarica",
@@ -924,6 +940,14 @@ const messages = {
     "admin.tickets.qrDrinks": "Consommations QR",
 
     "admin.volunteers.accountStatus": "Statut du compte",
+    "admin.volunteers.addDrinkCardButton": "Ajouter DrinkCard",
+    "admin.volunteers.addDrinkCardDescription":
+      "Enregistre manuellement une recharge pour ce volontaire.",
+    "admin.volunteers.addDrinkCardError": "Impossible d'ajouter la DrinkCard",
+    "admin.volunteers.addDrinkCardPending": "Ajout...",
+    "admin.volunteers.addDrinkCardSuccess":
+      "DrinkCard ajoutée : {{credits}} crédits pour {{amount}} €",
+    "admin.volunteers.addDrinkCardTitle": "Recharge manuelle",
     "admin.volunteers.credits": "Crédits",
     "admin.volunteers.detail": "Détail",
     "admin.volunteers.disableRefill": "Désactiver la recharge",
@@ -1277,6 +1301,12 @@ const messages = {
     "admin.tickets.qrDrinks": "QR drink tickets",
 
     "admin.volunteers.accountStatus": "Account status",
+    "admin.volunteers.addDrinkCardButton": "Add DrinkCard",
+    "admin.volunteers.addDrinkCardDescription": "Manually records a top-up for this volunteer.",
+    "admin.volunteers.addDrinkCardError": "Could not add the DrinkCard",
+    "admin.volunteers.addDrinkCardPending": "Adding...",
+    "admin.volunteers.addDrinkCardSuccess": "DrinkCard added: {{credits}} credits for {{amount}} €",
+    "admin.volunteers.addDrinkCardTitle": "Manual top-up",
     "admin.volunteers.credits": "Credits",
     "admin.volunteers.detail": "Detail",
     "admin.volunteers.disableRefill": "Disable refill",

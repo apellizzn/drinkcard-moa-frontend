@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Search, RefreshCw, Pause, Play } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { CreditCard, Loader2, Pause, Play, RefreshCw, Search } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -11,6 +11,7 @@ import {
   AdminTable,
 } from "@/components/admin/AdminDataTable";
 import {
+  addDrinkCardManually,
   disableDrinkCardAccountRefill,
   enableDrinkCardAccountRefill,
   listDrinkCardAccounts,
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/_authenticated/admin/volunteers")({
 function VolunteersPage() {
   const qc = useQueryClient();
   const { language, t, dateLocale } = useLanguage();
+  const addDrinkCardInFlight = useRef(false);
   const users = useQuery({
     queryKey: ["admin", "users", "vol"],
     queryFn: () => listVolunteerUsers(500),
@@ -53,6 +55,25 @@ function VolunteersPage() {
     },
     onError: (e) =>
       toast.error(e instanceof ApiError ? e.message : t("admin.volunteers.refillError")),
+  });
+
+  const addDrinkCard = useMutation({
+    mutationFn: addDrinkCardManually,
+    onSuccess: (result) => {
+      toast.success(
+        t("admin.volunteers.addDrinkCardSuccess", {
+          credits: String(result.credits),
+          amount: result.amount.toFixed(2),
+        }),
+      );
+      qc.invalidateQueries({ queryKey: ["admin", "accounts"] });
+      qc.invalidateQueries({ queryKey: ["admin", "payments"] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof ApiError ? e.message : t("admin.volunteers.addDrinkCardError")),
+    onSettled: () => {
+      addDrinkCardInFlight.current = false;
+    },
   });
 
   const list = useMemo(() => {
@@ -212,6 +233,39 @@ function VolunteersPage() {
                 />
                 <Row k="ID" v={selected.userId} mono />
               </dl>
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-medium text-slate-950">
+                  {t("admin.volunteers.addDrinkCardTitle")}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {t("admin.volunteers.addDrinkCardDescription")}
+                </p>
+                <button
+                  type="button"
+                  disabled={!selected.account || addDrinkCard.isPending}
+                  onClick={() => {
+                    if (
+                      !selected.account ||
+                      addDrinkCard.isPending ||
+                      addDrinkCardInFlight.current
+                    ) {
+                      return;
+                    }
+                    addDrinkCardInFlight.current = true;
+                    addDrinkCard.mutate(selected.userId);
+                  }}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {addDrinkCard.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="h-4 w-4" />
+                  )}
+                  {addDrinkCard.isPending
+                    ? t("admin.volunteers.addDrinkCardPending")
+                    : t("admin.volunteers.addDrinkCardButton")}
+                </button>
+              </div>
             </>
           ) : (
             <p className="text-sm text-slate-500">{t("admin.volunteers.selectPrompt")}</p>

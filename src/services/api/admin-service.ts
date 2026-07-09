@@ -39,6 +39,12 @@ export interface AdminDrinkTicketSummary {
   consumedByStaffId?: string | null;
 }
 
+export interface AddDrinkCardResponse {
+  volunteerId: string;
+  credits: number;
+  amount: number;
+}
+
 export interface AdminListParams {
   volunteerId?: string;
   status?: string;
@@ -67,7 +73,9 @@ export function listUsers(params: UserListParams = {}) {
 }
 
 export function listDrinkCardAccounts() {
-  return http<DrinkCardAccount[] | PageResponse<DrinkCardAccount>>("/api/v1/admin/drink-card-accounts");
+  return http<DrinkCardAccount[] | PageResponse<DrinkCardAccount>>(
+    "/api/v1/admin/drink-card-accounts",
+  );
 }
 
 export function enableDrinkCardAccountRefill(volunteerId: string) {
@@ -82,12 +90,23 @@ export function disableDrinkCardAccountRefill(volunteerId: string) {
   });
 }
 
+export function addDrinkCardManually(volunteerId: string) {
+  return http<AddDrinkCardResponse>("/api/v1/admin/payments/add-drink-card", {
+    method: "POST",
+    body: JSON.stringify({ volunteerId }),
+  });
+}
+
 export function listRecentPayments(size = 10) {
-  return http<PageResponse<AdminPaymentSummary>>(`/api/v1/admin/payments?size=${size}&sort=createdAt,desc`);
+  return http<PageResponse<AdminPaymentSummary>>(
+    `/api/v1/admin/payments?size=${size}&sort=createdAt,desc`,
+  );
 }
 
 export function listAdminPayments(params: AdminListParams = {}) {
-  return http<PageResponse<AdminPaymentSummary>>(`/api/v1/admin/payments${qs({ size: 20, sort: "createdAt,desc", ...params })}`);
+  return http<PageResponse<AdminPaymentSummary>>(
+    `/api/v1/admin/payments${qs({ size: 20, sort: "createdAt,desc", ...params })}`,
+  );
 }
 
 export async function listAllAdminPayments(params: AdminListParams = {}) {
@@ -105,7 +124,9 @@ export async function listAllAdminPayments(params: AdminListParams = {}) {
 }
 
 export function listAdminTickets(params: AdminListParams = {}) {
-  return http<PageResponse<AdminDrinkTicketSummary>>(`/api/v1/admin/drink-tickets${qs({ size: 20, sort: "createdAt,desc", ...params })}`);
+  return http<PageResponse<AdminDrinkTicketSummary>>(
+    `/api/v1/admin/drink-tickets${qs({ size: 20, sort: "createdAt,desc", ...params })}`,
+  );
 }
 
 export interface InviteUserRequest {
