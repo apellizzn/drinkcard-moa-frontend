@@ -9,7 +9,7 @@ export const LANGUAGES = [
 
 export type LanguageCode = (typeof LANGUAGES)[number]["code"];
 
-export const DEFAULT_LANGUAGE: LanguageCode = "es";
+export const DEFAULT_LANGUAGE: LanguageCode = "it";
 export const LANGUAGE_STORAGE_KEY = "drinkcard.language";
 
 const languageCodes = new Set<string>(LANGUAGES.map((language) => language.code));
