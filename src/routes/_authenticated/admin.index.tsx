@@ -16,21 +16,15 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
+  AdminStats,
+  getAdminStats,
   inviteUser,
-  listDrinkCardAccounts,
-  listAllAdminPayments,
-  listAdminTickets,
   listVolunteerUsers,
-  type AdminDrinkTicketSummary,
-  type PageResponse,
   type UserSummary,
 } from "@/services/api/admin-service";
-import type { DrinkCardAccount } from "@/services/api/drink-card-service";
 import { ApiError } from "@/services/api/http-client";
 import { translateDrink } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
-
-type AccountResponse = DrinkCardAccount[] | PageResponse<DrinkCardAccount>;
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: Dashboard,
@@ -39,32 +33,16 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 function Dashboard() {
   const { language, t } = useLanguage();
   const users = useQuery({ queryKey: ["admin", "users"], queryFn: () => listVolunteerUsers(200) });
-  const accounts = useQuery({ queryKey: ["admin", "accounts"], queryFn: listDrinkCardAccounts });
-  const revenuePayments = useQuery({
-    queryKey: ["admin", "payments", "revenue"],
-    queryFn: () => listAllAdminPayments({ status: "SUCCESS" }),
-  });
-  const tickets = useQuery({
-    queryKey: ["admin", "tickets", "dashboard"],
-    queryFn: () => listAdminTickets({ size: 500 }),
-  });
-
+  const stats = useQuery({ queryKey: ["admin", "stats"], queryFn: getAdminStats });
   const userList = arr<UserSummary>(users.data);
-  const accList = arr<DrinkCardAccount>(accounts.data as AccountResponse | undefined);
-  const revenuePayList = revenuePayments.data ?? [];
-  const ticketList = arr<AdminDrinkTicketSummary>(tickets.data);
-  const consumedTickets = ticketList.filter((ticket) => ticket.status === "CONSUMED");
-  const activeCards = accList.filter((a) => a.status === "ACTIVE").length;
-  const totalCredits = accList.reduce((s, a) => s + (a.credits || 0), 0);
-  const revenue = revenuePayList.reduce((s, p) => s + (p.amount ?? 0), 0);
+  const activeCards = stats.data?.totalActiveCards ?? 0;
+  const totalCredits = stats.data?.totalAvailableCredits ?? 0;
+  const revenue = stats.data?.totalSuccessfulPaymentsAmount ?? 0;
+  const volunteersRanking = stats.data?.topVolunteers ?? [];
+  const drinkConsumptions = stats.data?.drinkConsumptions ?? [];
+  const paymentsCount = stats.data?.totalSuccessfulPayments ?? 0;
 
-  const mix = drinkMix(consumedTickets, language);
-  const volunteerRanking = topVolunteers(
-    consumedTickets,
-    userList,
-    t("admin.dashboard.volunteerFallback"),
-  );
-
+  const mix = drinkMix(drinkConsumptions, language);
   return (
     <div className="space-y-6">
       <div>
@@ -95,7 +73,7 @@ function Dashboard() {
         <Kpi
           icon={TrendingUp}
           label={t("admin.dashboard.confirmedRevenue")}
-          value={revenuePayments.isLoading ? "..." : revenue.toFixed(2)}
+          value={stats.isLoading ? "..." : revenue.toFixed(2)}
           accent="green"
         />
       </div>
@@ -104,13 +82,13 @@ function Dashboard() {
         <MiniMetric
           icon={TicketCheck}
           label={t("admin.dashboard.consumedDrinks")}
-          value={consumedTickets.length}
+          value={drinkConsumptions.length}
           tone="green"
         />
         <MiniMetric
           icon={ReceiptText}
           label={t("admin.dashboard.paymentsProcessed")}
-          value={revenuePayList.length}
+          value={paymentsCount}
           tone="amber"
         />
       </div>
@@ -152,21 +130,21 @@ function Dashboard() {
             {t("admin.dashboard.topVolunteersSubtitle")}
           </p>
           <div className="mt-5 space-y-3">
-            {volunteerRanking.map((v, index) => (
+            {volunteersRanking.map((v, index) => (
               <div
-                key={v.volunteerId}
+                key={v.volunteer.id}
                 className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-950">
-                    {index + 1}. {v.name}
+                    {index + 1}. {`${v.volunteer.firstName} ${v.volunteer.lastName}` || v.volunteer.email || v.volunteer.id}
                   </p>
-                  <p className="font-mono text-xs text-slate-500">{v.volunteerId.slice(0, 8)}...</p>
+                  <p className="font-mono text-xs text-slate-500">{v.volunteer.id.slice(0, 8)}...</p>
                 </div>
-                <span className="text-lg font-semibold text-slate-950">{v.count}</span>
+                <span className="text-lg font-semibold text-slate-950">{v.drinkTicketsCount}</span>
               </div>
             ))}
-            {volunteerRanking.length === 0 && (
+            {volunteersRanking.length === 0 && (
               <p className="text-sm text-slate-500">{t("admin.dashboard.noConsumptionData")}</p>
             )}
           </div>
@@ -177,7 +155,7 @@ function Dashboard() {
 }
 
 function drinkMix(
-  tickets: AdminDrinkTicketSummary[],
+  drinkConsumptions: AdminStats["drinkConsumptions"],
   language: Parameters<typeof translateDrink>[0],
 ) {
   const colors = [
@@ -187,15 +165,11 @@ function drinkMix(
     "bg-neon-cyan",
     "bg-neon-lime",
   ];
-  const counts = tickets.reduce<Record<string, number>>((acc, ticket) => {
-    acc[ticket.drinkType] = (acc[ticket.drinkType] ?? 0) + 1;
-    return acc;
-  }, {});
-  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+  
+  const total = drinkConsumptions.reduce((sum, d) => sum + d.drinkTicketsCount, 0);
   if (!total) return [];
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([drink, count], index) => ({
+  return drinkConsumptions
+    .map(({ drinkType: drink, drinkTicketsCount: count }, index) => ({
       label: translateDrink(language, drink),
       count,
       value: Math.round((count / total) * 100),
@@ -203,26 +177,6 @@ function drinkMix(
     }));
 }
 
-function topVolunteers(
-  tickets: AdminDrinkTicketSummary[],
-  users: UserSummary[],
-  fallbackName: string,
-) {
-  const names = new Map(users.map((u) => [u.userId, u.fullName || u.email || u.userId]));
-  const counts = tickets.reduce<Record<string, number>>((acc, ticket) => {
-    acc[ticket.volunteerId] = (acc[ticket.volunteerId] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([volunteerId, count]) => ({
-      volunteerId,
-      count,
-      name: names.get(volunteerId) ?? fallbackName,
-    }));
-}
 
 function Kpi({
   icon: Icon,

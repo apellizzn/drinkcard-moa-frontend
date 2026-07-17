@@ -105,6 +105,25 @@ export function addDrinkCardManually(volunteerId: string) {
   });
 }
 
+export interface AdminStats {
+  totalAvailableCredits: number;
+  totalSuccessfulPaymentsAmount: number;
+  totalSuccessfulPayments: number;
+  totalActiveCards: number;
+  topVolunteers: {
+    volunteer: AdminPaymentVolunteerInfo;
+    drinkTicketsCount: number;
+  }[];
+  drinkConsumptions: {
+    drinkType: string;
+    drinkTicketsCount: number;
+  }[];
+}
+
+export function getAdminStats() {
+  return http<AdminStats>("/api/v1/admin/stats");
+}
+
 export function listRecentPayments(size = 10) {
   return http<PageResponse<AdminPaymentSummary>>(
     `/api/v1/admin/payments?size=${size}&sort=createdAt,desc`,
