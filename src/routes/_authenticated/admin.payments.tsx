@@ -9,7 +9,7 @@ import {
   AdminStatusBadge,
   AdminTable,
 } from "@/components/admin/AdminDataTable";
-import { listAdminPayments } from "@/services/api/admin-service";
+import { listAdminPayments, type AdminPaymentVolunteerInfo } from "@/services/api/admin-service";
 import { resultCount, translateNow, translateStatus } from "@/lib/i18n";
 import { useLanguage } from "@/lib/i18n-react";
 
@@ -98,7 +98,23 @@ function AdminPaymentsPage() {
             {list.map((payment) => (
               <tr key={payment.paymentId}>
                 <td>{fmt(payment.createdAt, dateLocale)}</td>
-                <td className="font-mono text-xs">{short(payment.volunteerId)}</td>
+                <td>
+                  {payment.volunteer ? (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-900">
+                        {volunteerFullName(payment.volunteer) || short(payment.volunteerId)}
+                      </span>
+                      {payment.volunteer.email && (
+                        <span className="text-xs text-slate-500">{payment.volunteer.email}</span>
+                      )}
+                      <span className="font-mono text-xs text-slate-400">
+                        {payment.volunteerId}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-mono text-xs">{short(payment.volunteerId)}</span>
+                  )}
+                </td>
                 <td className="text-right font-medium text-slate-950">
                   {(payment.amount ?? 0).toFixed(2)} €
                 </td>
@@ -135,4 +151,8 @@ function fmt(value: string | null | undefined, locale: Locale) {
 
 function short(value?: string | null) {
   return value ? `${value.slice(0, 8)}…` : "—";
+}
+
+function volunteerFullName(volunteer: AdminPaymentVolunteerInfo) {
+  return [volunteer.firstName, volunteer.lastName].filter(Boolean).join(" ").trim();
 }

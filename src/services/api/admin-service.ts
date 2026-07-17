@@ -17,8 +17,16 @@ export interface UserSummary {
   status: string;
 }
 
+export interface AdminPaymentVolunteerInfo {
+  id: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+}
+
 export interface AdminPaymentSummary {
   paymentId: string;
+  volunteer?: AdminPaymentVolunteerInfo | null;
   volunteerId: string;
   amount: number;
   status: string;
